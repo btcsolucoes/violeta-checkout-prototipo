@@ -1,6 +1,4 @@
 const ASSETS = {
-  violetaLogo: "assets/violeta-logo-hero.png",
-  violetaSymbol: "assets/violeta-flower-symbol.png",
   qrstackMark: "assets/qrstack-mark.png",
   qrstackWordmark: "assets/qrstack-wordmark.png",
 };
@@ -8,48 +6,48 @@ const ASSETS = {
 const DEFAULT_STATE = {
   restaurants: [
     {
-      id: "rest-violeta",
-      name: "Violeta Café e Restaurante",
-      slug: "violeta",
-      logoUrl: ASSETS.violetaLogo,
-      symbolUrl: ASSETS.violetaSymbol,
-      primaryColor: "#7d2f8f",
-      secondaryColor: "#f2a72c",
-      whatsappNumber: "81992351617",
-      instagramUrl: "https://instagram.com/violetacafeerestaurante",
-      mapsUrl: "https://maps.google.com/?q=Rua%20do%20Brum%2C%20170",
-      address: "Rua do Brum, 170",
-      adminToken: "demo-violeta",
-      reminderTime: "08:30",
-      reminderEnabled: false,
-      messageTemplate:
-        "Bom dia! Segue o link do painel QrStack para publicar o cardápio e gerar o Story de hoje: {link}",
-    },
-    {
-      id: "rest-amaro",
-      name: "Amaro",
-      slug: "amaro",
+      id: "rest-demo",
+      name: "Restaurante Demo",
+      slug: "restaurante-demo",
       logoUrl: ASSETS.qrstackWordmark,
       symbolUrl: ASSETS.qrstackMark,
       primaryColor: "#4a1f16",
       secondaryColor: "#d59b52",
       whatsappNumber: "81999999999",
-      instagramUrl: "#",
-      mapsUrl: "#",
-      address: "Cliente modelo",
-      adminToken: "demo-amaro",
+      instagramUrl: "https://instagram.com/restaurantedemo",
+      mapsUrl: "https://maps.google.com/?q=Restaurante%20Demo",
+      address: "Rua Exemplo, 100",
+      adminToken: "demo-restaurante",
       reminderTime: "09:00",
+      reminderEnabled: false,
+      messageTemplate:
+        "Bom dia! Segue o link do painel QrStack para publicar o cardápio e gerar o Story de hoje: {link}",
+    },
+    {
+      id: "rest-cafe-demo",
+      name: "Café Modelo",
+      slug: "cafe-modelo",
+      logoUrl: ASSETS.qrstackWordmark,
+      symbolUrl: ASSETS.qrstackMark,
+      primaryColor: "#203b46",
+      secondaryColor: "#d9843b",
+      whatsappNumber: "81988888888",
+      instagramUrl: "https://instagram.com/cafemodelo",
+      mapsUrl: "https://maps.google.com/?q=Caf%C3%A9%20Modelo",
+      address: "Av. Modelo, 250",
+      adminToken: "demo-cafe",
+      reminderTime: "08:30",
       reminderEnabled: true,
       messageTemplate: "Olá! Atualize o cardápio do dia pelo painel: {link}",
     },
   ],
   menuDays: [
     {
-      id: "menu-violeta-today",
-      restaurantId: "rest-violeta",
+      id: "menu-demo-today",
+      restaurantId: "rest-demo",
       date: todayIso(),
       title: "Buffet de hoje",
-      price: "R$ 59,90/kg",
+      price: "R$ 64,90/kg",
       serviceHours: "Almoço das 11h às 14h30",
       notes: "Cardápio sujeito a alterações conforme disponibilidade do dia.",
       isPublished: true,
@@ -59,20 +57,20 @@ const DEFAULT_STATE = {
     },
   ],
   menuItems: [
-    item("menu-violeta-today", "Omelete de queijo", "Café da manhã", true, 1),
-    item("menu-violeta-today", "Tapioca de frango", "Café da manhã", true, 2),
-    item("menu-violeta-today", "Cuscuz com manteiga", "Café da manhã", false, 3),
-    item("menu-violeta-today", "Frango grelhado", "Almoço", true, 4),
-    item("menu-violeta-today", "Peixe ao molho de ervas", "Almoço", true, 5),
-    item("menu-violeta-today", "Arroz de brócolis", "Almoço", false, 6),
-    item("menu-violeta-today", "Creme de macaxeira", "Sopas", true, 7),
-    item("menu-violeta-today", "Sopa de legumes", "Sopas", false, 8),
+    item("menu-demo-today", "Carne de panela", "Proteínas", true, 1),
+    item("menu-demo-today", "Frango grelhado", "Proteínas", true, 2),
+    item("menu-demo-today", "Peixe ao molho de ervas", "Proteínas", true, 3),
+    item("menu-demo-today", "Arroz branco", "Bases", false, 4),
+    item("menu-demo-today", "Feijão carioca", "Bases", true, 5),
+    item("menu-demo-today", "Purê de batata", "Guarnições", false, 6),
+    item("menu-demo-today", "Salada verde", "Saladas", false, 7),
+    item("menu-demo-today", "Farofa da casa", "Acompanhamentos", false, 8),
   ],
   storyAssets: [],
   events: seedEvents(),
 };
 
-const STORE_KEY = "qrstack-platform-prototype-v1";
+const STORE_KEY = "qrstack-system-prototype-v2";
 const app = document.getElementById("app");
 let state = loadState();
 let lastStoryDataUrl = "";
@@ -96,8 +94,8 @@ function seedEvents() {
   const type = ["page_view", "page_view", "page_view", "whatsapp_click", "maps_click"];
   return Array.from({ length: 38 }, (_, index) => ({
     id: `event-${index}`,
-    restaurantId: "rest-violeta",
-    menuDayId: "menu-violeta-today",
+    restaurantId: "rest-demo",
+    menuDayId: "menu-demo-today",
     eventType: type[index % type.length],
     source: source[index % source.length],
     userAgent: "seed",
@@ -138,16 +136,25 @@ function router() {
 
   if (!hash || parts[0] === "home") return renderHome();
   if (parts[0] === "hq") return renderHq(parts[1] || "overview");
-  if (parts[0] === "admin") return renderClientPortal(parts[1] || "violeta");
-  if (parts[0] === "r") return renderPublicMenu(parts[1] || "violeta", source);
+  if (parts[0] === "admin") return renderClientPortal(parts[1] || "restaurante-demo");
+  if (parts[0] === "r") return renderPublicMenu(parts[1] || "restaurante-demo", source);
   renderHome();
 }
 
 function setTheme(restaurant) {
   document.documentElement.style.setProperty("--primary", restaurant.primaryColor);
   document.documentElement.style.setProperty("--secondary", restaurant.secondaryColor);
+  document.documentElement.style.setProperty("--accent", "#f4b740");
   document.documentElement.style.setProperty("--hero-mark", `url("${restaurant.symbolUrl}")`);
   document.documentElement.style.setProperty("--brand-pattern", `url("${restaurant.symbolUrl}")`);
+}
+
+function setSystemTheme() {
+  document.documentElement.style.setProperty("--primary", "#0b2239");
+  document.documentElement.style.setProperty("--secondary", "#27d39f");
+  document.documentElement.style.setProperty("--accent", "#f4b740");
+  document.documentElement.style.setProperty("--hero-mark", `url("${ASSETS.qrstackMark}")`);
+  document.documentElement.style.setProperty("--brand-pattern", `url("${ASSETS.qrstackMark}")`);
 }
 
 function getRestaurant(slug) {
@@ -182,8 +189,7 @@ function trackEvent(restaurant, eventType, source = "direct", menuDayId = null) 
 }
 
 function renderHome() {
-  const restaurant = getRestaurant("violeta");
-  setTheme(restaurant);
+  setSystemTheme();
   app.innerHTML = `
     <section class="hero">
       <div class="hero__inner">
@@ -197,8 +203,8 @@ function renderHome() {
         </div>
         <div class="actions">
           <a class="button" href="#/hq">Central QrStack</a>
-          <a class="button secondary" href="#/admin/violeta">Acesso do restaurante</a>
-          <a class="button ghost" href="#/r/violeta?src=qr">Cardápio público</a>
+          <a class="button secondary" href="#/admin/restaurante-demo">Acesso do restaurante</a>
+          <a class="button ghost" href="#/r/restaurante-demo?src=qr">Cardápio público</a>
         </div>
       </div>
     </section>
@@ -206,8 +212,7 @@ function renderHome() {
 }
 
 function renderHq(tab = "overview") {
-  const restaurant = getRestaurant("violeta");
-  setTheme(restaurant);
+  setSystemTheme();
   const restaurants = state.restaurants;
   app.innerHTML = `
     <div class="admin-layout">
@@ -283,6 +288,10 @@ function renderHqOverview() {
       <div class="card">
         <h3>Próxima automação</h3>
         <p class="muted">A estrutura de lembretes já está modelada por cliente. No futuro, a API de WhatsApp usa horário, status ativo/inativo e mensagem padrão para enviar o link do painel.</p>
+      </div>
+      <div class="card">
+        <h3>Como substitui o Google Forms</h3>
+        <p class="muted">No Amaro, o cardápio público busca um endpoint do Google Apps Script, filtra as respostas da planilha pela data de hoje e renderiza o almoço automaticamente. Na QrStack, o restaurante preenche este painel, o sistema salva no Supabase e a página pública lê o cardápio publicado pelo slug do cliente. O GitHub fica só para código/deploy, não para atualizar cardápio.</p>
       </div>
       <div class="card">
         <h3>Cardápios publicados</h3>
@@ -692,25 +701,25 @@ function drawStory(restaurant, menu, menuItems) {
     ctx.drawImage(logo, w / 2 - 110, 180, 220, 220);
     ctx.textAlign = "center";
     ctx.fillStyle = restaurant.secondaryColor;
-    ctx.font = "800 42px Inter";
+    ctx.font = "800 42px Manrope";
     ctx.fillText("CARDÁPIO DO DIA", w / 2, 495);
 
     ctx.fillStyle = restaurant.primaryColor;
-    ctx.font = "700 104px Playfair Display";
+    ctx.font = "800 94px Sora";
     wrapCanvasText(ctx, menu.title || "Buffet de hoje", w / 2, 630, w - 220, 104, 2);
 
     ctx.fillStyle = "#6f416c";
-    ctx.font = "700 38px Inter";
+    ctx.font = "700 38px Manrope";
     ctx.fillText(formatDate(menu.date), w / 2, 820);
 
     ctx.textAlign = "left";
     let y = 940;
     highlights.forEach((entry) => {
       ctx.fillStyle = restaurant.primaryColor;
-      ctx.font = "800 44px Inter";
+      ctx.font = "800 44px Manrope";
       ctx.fillText("•", 178, y);
       ctx.fillStyle = "#42213e";
-      ctx.font = "800 44px Inter";
+      ctx.font = "800 44px Manrope";
       wrapCanvasText(ctx, entry.name, 222, y, w - 350, 52, 1);
       y += 92;
     });
@@ -720,17 +729,17 @@ function drawStory(restaurant, menu, menuItems) {
     roundRect(ctx, 210, 1430, w - 420, 118, 22);
     ctx.fill();
     ctx.fillStyle = "white";
-    ctx.font = "900 48px Inter";
+    ctx.font = "900 48px Manrope";
     ctx.fillText(menu.price || "Consulte o valor", w / 2, 1504);
 
     ctx.fillStyle = "#6f416c";
-    ctx.font = "700 34px Inter";
+    ctx.font = "700 34px Manrope";
     ctx.fillText(menu.serviceHours || "Confira o horário no cardápio", w / 2, 1618);
     ctx.fillStyle = restaurant.primaryColor;
-    ctx.font = "900 38px Inter";
+    ctx.font = "900 38px Manrope";
     ctx.fillText("ACESSE O CARDÁPIO COMPLETO", w / 2, 1718);
     ctx.fillStyle = "#42213e";
-    ctx.font = "700 30px Inter";
+    ctx.font = "700 30px Manrope";
     ctx.fillText(`qrstack.com.br/${restaurant.slug}`, w / 2, 1772);
     lastStoryDataUrl = canvas.toDataURL("image/png");
   };
