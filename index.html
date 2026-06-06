@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#783889">
+  <title>Violeta Café e Restaurante - Cardápio Digital</title>
+  <meta name="description" content="Cardápio digital do Violeta Café e Restaurante: café da manhã, almoço self-service, sopas, cafés, bebidas e doces.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Libre+Franklin:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=violeta-v13-fixed-nav-20260605">
+</head>
+<body data-theme="manha">
+  <main class="menu-shell">
+    <div class="background-ornaments" aria-hidden="true">
+      <img class="brand-mark brand-mark--one" src="assets/violeta-flower-symbol.png" alt="">
+      <img class="brand-mark brand-mark--two" src="assets/violeta-flower-symbol.png" alt="">
+      <img class="brand-mark brand-mark--three" src="assets/violeta-flower-symbol.png" alt="">
+      <img class="brand-mark brand-mark--four" src="assets/violeta-flower-symbol.png" alt="">
+      <img class="brand-mark brand-mark--five" src="assets/violeta-flower-symbol.png" alt="">
+      <img class="brand-mark brand-mark--six" src="assets/violeta-flower-symbol.png" alt="">
+    </div>
+
+    <header class="cover" id="inicio">
+      <div class="cover-content">
+        <span class="menu-word">Cardápio Digital</span>
+        <img class="hero-logo" src="assets/violeta-logo-hero.png" alt="Violeta Café e Restaurante" width="1792" height="1024" fetchpriority="high">
+        <div class="hero-mobile-brand" aria-hidden="true">
+          <img src="assets/violeta-flower-symbol.png" alt="">
+          <span class="hero-mobile-name">Violeta</span>
+          <span class="hero-mobile-subtitle">Café & Restaurante</span>
+        </div>
+        <h1 class="sr-only">Violeta Café e Restaurante</h1>
+      </div>
+    </header>
+
+    <nav class="tab-dock" id="cardapio" role="tablist" aria-label="Categorias do cardápio">
+      <button class="tab is-active" id="tab-manha" type="button" role="tab" aria-selected="true" aria-controls="panel-manha" data-theme="manha"><span>01</span><b>Café da Manhã</b></button>
+      <button class="tab" id="tab-almoco" type="button" role="tab" aria-selected="false" aria-controls="panel-almoco" data-theme="almoco"><span>02</span><b>Almoço</b></button>
+      <button class="tab" id="tab-sopas" type="button" role="tab" aria-selected="false" aria-controls="panel-sopas" data-theme="sopas"><span>03</span><b>Sopas</b></button>
+      <button class="tab" id="tab-bebidas" type="button" role="tab" aria-selected="false" aria-controls="panel-bebidas" data-theme="bebidas"><span>04</span><b>Cafés & Bebidas</b></button>
+      <button class="tab" id="tab-doces" type="button" role="tab" aria-selected="false" aria-controls="panel-doces" data-theme="doces"><span>05</span><b>Doces</b></button>
+      <button class="tab" id="tab-info" type="button" role="tab" aria-selected="false" aria-controls="panel-info" data-theme="info"><span>06</span><b>Info</b></button>
+    </nav>
+
+    <div class="tab-panels">
+      <section class="panel is-active" id="panel-manha" role="tabpanel" aria-labelledby="tab-manha">
+        <div class="section-head">
+          <span>Das 7h às 9h30</span>
+          <h2>Café da Manhã</h2>
+          <p>Tapiocas, cuscuz, salgados e buffet matinal no clima roxo e dourado do Violeta.</p>
+        </div>
+
+        <div class="subtabs subtabs--featured subtabs--tier" role="tablist" aria-label="Formatos do café da manhã">
+          <button class="subtab subtab--major is-active" type="button" data-target="manha-buffet">Buffet</button>
+          <button class="subtab subtab--major" type="button" data-target="manha-a-parte">À parte</button>
+        </div>
+
+        <div class="subpanel is-active subpanel--stack" id="manha-buffet">
+          <div class="subtabs subtabs--nested" role="tablist" aria-label="Componentes do buffet de café da manhã">
+            <button class="subtab is-active" type="button" data-target="buffet-manha-tapiocas">Tapiocas</button>
+            <button class="subtab" type="button" data-target="buffet-manha-sanduiches">Sanduíches</button>
+            <button class="subtab" type="button" data-target="buffet-manha-proteinas">Proteínas</button>
+            <button class="subtab" type="button" data-target="buffet-manha-carboidratos">Carboidratos</button>
+            <button class="subtab" type="button" data-target="buffet-manha-raizes">Raízes</button>
+            <button class="subtab" type="button" data-target="buffet-manha-doces">Doces</button>
+            <button class="subtab" type="button" data-target="buffet-manha-frutas">Frutas</button>
+            <button class="subtab" type="button" data-target="buffet-manha-bebidas">Bebidas</button>
+          </div>
+
+          <div class="subpanel is-active" id="buffet-manha-tapiocas">
+            <div class="menu-list">
+              <article class="menu-item"><div><span>Buffet</span><h3>Tapioca de queijo</h3><p>Preparos regionais servidos conforme produção do dia.</p></div><strong>R$ 6,49 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Tapioca de coco</h3><p>Opção doce ou neutra para acompanhar café e frutas.</p></div><strong>R$ 6,49 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Tapioca na manteiga</h3><p>Base simples para montar o prato matinal.</p></div><strong>R$ 6,49 / 100g</strong></article>
+            </div>
+          </div>
+
+          <div class="subpanel" id="buffet-manha-sanduiches" hidden>
+            <div class="menu-list">
+              <article class="menu-item"><div><span>Buffet</span><h3>Pães variados</h3><p>Seleção de pães, tostex e sanduíches simples do dia.</p></div><strong>R$ 6,49 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Pão delícia e pão trança</h3><p>Itens inspirados nos salgados da casa.</p></div><strong>R$ 6,49 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Misto e queijo</h3><p>Clássicos de café da manhã para compor o prato.</p></div><strong>R$ 6,49 / 100g</strong></article>
+            </div>
+          </div>
+
+          <div class="subpanel" id="buffet-manha-proteinas" hidden>
+            <div class="menu-list">
+              <article class="menu-item"><div><span>Buffet</span><h3>Ovos</h3><p>Opções simples para acompanhar cuscuz, pães e raízes.</p></div><strong>R$ 6,49 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Frango desfiado</h3><p>Proteína leve para sanduíches, cuscuz e tapiocas.</p></div><strong>R$ 6,49 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Charque e carne de sol</h3><p>Itens regionais conforme disponibilidade da cozinha.</p></div><strong>R$ 6,49 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Salsicha ao molho</h3><p>Base para cachorro-quente e acompanhamentos matinais.</p></div><strong>R$ 6,49 / 100g</strong></article>
+            </div>
+          </div>
+
+          <div class="subpanel" id="buffet-manha-carboidratos" hidden>
+            <div class="menu-list">
+              <article class="menu-item"><div><span>Buffet</span><h3>Cuscuz</h3><p>Com manteiga, leite ou acompanhamentos do buffet.</p></div><strong>R$ 6,49 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Pão de queijo</h3><p>Porções quentes conforme reposição.</p></div><strong>R$ 6,49 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Pães e massas simples</h3><p>Bases para montar café da manhã regional.</p></div><strong>R$ 6,49 / 100g</strong></article>
+            </div>
+          </div>
+
+          <div class="subpanel" id="buffet-manha-raizes" hidden>
+            <div class="menu-list">
+              <article class="menu-item"><div><span>Buffet</span><h3>Macaxeira</h3><p>Raiz regional para acompanhar ovos, queijos e proteínas.</p></div><strong>R$ 6,49 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Inhame</h3><p>Opção leve e tradicional de café da manhã.</p></div><strong>R$ 6,49 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Batata-doce</h3><p>Servida conforme disponibilidade diária.</p></div><strong>R$ 6,49 / 100g</strong></article>
+            </div>
+          </div>
+
+          <div class="subpanel" id="buffet-manha-doces" hidden>
+            <div class="menu-list">
+              <article class="menu-item"><div><span>Buffet</span><h3>Bolos caseiros</h3><p>Sabores do dia, incluindo opções regionais.</p></div><strong>R$ 6,49 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Doces e tortinhas</h3><p>Pequenas porções para fechar o café.</p></div><strong>R$ 6,49 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Cartola</h3><p>Banana, queijo e canela em leitura regional.</p></div><strong>R$ 6,49 / 100g</strong></article>
+            </div>
+          </div>
+
+          <div class="subpanel" id="buffet-manha-frutas" hidden>
+            <div class="menu-list">
+              <article class="menu-item"><div><span>Buffet</span><h3>Frutas selecionadas</h3><p>Variedade diária para montar o prato.</p></div><strong>R$ 6,49 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Salada de frutas</h3><p>Combina com mel, granola e iogurte quando disponível.</p></div><strong>R$ 6,49 / 100g</strong></article>
+            </div>
+          </div>
+
+          <div class="subpanel" id="buffet-manha-bebidas" hidden>
+            <div class="menu-list">
+              <article class="menu-item"><div><span>Buffet</span><h3>Café coado</h3><p>Bebida base para acompanhar o buffet matinal.</p></div><strong>R$ 6,49 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Leite e achocolatado</h3><p>Opções quentes ou frias conforme serviço.</p></div><strong>R$ 6,49 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Sucos do dia</h3><p>Sabores conforme disponibilidade.</p></div><strong>R$ 6,49 / 100g</strong></article>
+            </div>
+          </div>
+        </div>
+
+        <div class="subpanel subpanel--stack" id="manha-a-parte" hidden>
+          <div class="subtabs subtabs--nested" role="tablist" aria-label="Itens à parte do café da manhã">
+            <button class="subtab is-active" type="button" data-target="parte-manha-tapiocas">Tapiocas</button>
+            <button class="subtab" type="button" data-target="parte-manha-cuscuz">Cuscuz</button>
+            <button class="subtab" type="button" data-target="parte-manha-sanduiches">Sanduíches</button>
+            <button class="subtab" type="button" data-target="parte-manha-salgados">Salgados</button>
+            <button class="subtab" type="button" data-target="parte-manha-frutas">Frutas</button>
+          </div>
+
+          <div class="subpanel is-active" id="parte-manha-tapiocas">
+            <div class="menu-list">
+              <article class="menu-item"><div><span>Tapioca</span><h3>Queijo</h3><p>Coalho ou mussarela.</p></div><strong>R$ 14,90</strong></article>
+              <article class="menu-item"><div><span>Tapioca</span><h3>Charque</h3><p>Com queijo coalho ou mussarela.</p></div><strong>R$ 19,90</strong></article>
+              <article class="menu-item"><div><span>Tapioca</span><h3>Carne de Sol</h3><p>Com queijo coalho ou mussarela.</p></div><strong>R$ 19,90</strong></article>
+              <article class="menu-item"><div><span>Tapioca</span><h3>Cartola</h3><p>Queijo manteiga, banana frita e canela.</p></div><strong>R$ 21,50</strong></article>
+              <article class="menu-item"><div><span>Tapioca</span><h3>Coco com Queijo</h3><p>Coalho, mussarela ou requeijão.</p></div><strong>R$ 15,90</strong></article>
+              <article class="menu-item"><div><span>Tapioca</span><h3>Coco</h3><p>Massa com coco.</p></div><strong>R$ 12,90</strong></article>
+              <article class="menu-item"><div><span>Tapioca</span><h3>Frango com Queijo</h3><p>Coalho, mussarela ou requeijão.</p></div><strong>R$ 19,90</strong></article>
+              <article class="menu-item"><div><span>Massa</span><h3>Tapioca Massa</h3><p>Manteiga ou ghee.</p></div><strong>R$ 8,50</strong></article>
+            </div>
+          </div>
+
+          <div class="subpanel" id="parte-manha-cuscuz" hidden>
+            <div class="menu-list">
+              <article class="menu-item"><div><span>Cuscuz</span><h3>Carne de Sol</h3><p>Queijo coalho ou requeijão.</p></div><strong>R$ 21,90</strong></article>
+              <article class="menu-item"><div><span>Cuscuz</span><h3>Frango</h3><p>Queijo coalho ou requeijão.</p></div><strong>R$ 20,90</strong></article>
+              <article class="menu-item"><div><span>Cuscuz</span><h3>Charque Desfiada</h3><p>Queijo coalho ou requeijão.</p></div><strong>R$ 21,90</strong></article>
+              <article class="menu-item"><div><span>Cuscuz</span><h3>Cachorro Quente</h3><p>Vinagrete, batata palha e salsicha ao molho da casa.</p></div><strong>R$ 19,90</strong></article>
+              <article class="menu-item"><div><span>Cuscuz</span><h3>Cartola</h3><p>Queijo manteiga, banana frita e canela.</p></div><strong>R$ 26,50</strong></article>
+              <article class="menu-item"><div><span>Cuscuz</span><h3>Com Leite</h3><p>Integral ou leite de coco.</p></div><strong>R$ 15,90</strong></article>
+              <article class="menu-item"><div><span>Cuscuz</span><h3>Com Manteiga</h3><p>Manteiga ou ghee.</p></div><strong>R$ 14,90</strong></article>
+              <article class="menu-item"><div><span>Cuscuz</span><h3>Com Ovo</h3><p>2 ovos, queijo coalho ou requeijão.</p></div><strong>R$ 17,50</strong></article>
+            </div>
+          </div>
+
+          <div class="subpanel" id="parte-manha-sanduiches" hidden>
+            <div class="menu-list">
+              <article class="menu-item"><div><span>Pão</span><h3>Pão Delícia</h3><p>Frango e queijo.</p></div><strong>R$ 12,90</strong></article>
+              <article class="menu-item"><div><span>Pão</span><h3>Pão Trança</h3><p>Frango e queijo.</p></div><strong>R$ 12,90</strong></article>
+              <article class="menu-item"><div><span>Tostex</span><h3>Misto</h3><p>Pão de caixa, mussarela e presunto.</p></div><strong>R$ 12,90</strong></article>
+              <article class="menu-item"><div><span>Tostex</span><h3>Queijo</h3><p>Pão de caixa e queijo coalho.</p></div><strong>R$ 12,90</strong></article>
+            </div>
+          </div>
+
+          <div class="subpanel" id="parte-manha-salgados" hidden>
+            <div class="menu-list">
+              <article class="menu-item"><div><span>Salgado</span><h3>Esfirra</h3><p>Carne e queijo.</p></div><strong>R$ 12,90</strong></article>
+              <article class="menu-item"><div><span>Salgado</span><h3>Americano</h3><p>Salgado clássico da casa.</p></div><strong>R$ 17,90</strong></article>
+              <article class="menu-item"><div><span>Salgado</span><h3>Coxinha Frango</h3><p>Coxinha tradicional.</p></div><strong>R$ 12,90</strong></article>
+              <article class="menu-item"><div><span>Salgado</span><h3>Coxinha Frango com Catupiry</h3><p>Cremosa e recheada.</p></div><strong>R$ 13,90</strong></article>
+              <article class="menu-item"><div><span>Porção</span><h3>Pão de Queijo</h3><p>6 unidades.</p></div><strong>R$ 10,90</strong></article>
+              <article class="menu-item"><div><span>Porção</span><h3>Mini Coxinhas</h3><p>6 unidades.</p></div><strong>R$ 10,90</strong></article>
+            </div>
+          </div>
+
+          <div class="subpanel" id="parte-manha-frutas" hidden>
+            <div class="menu-list">
+              <article class="menu-item"><div><span>Frutas</span><h3>Salada de Frutas</h3><p>Acompanha mel e granola.</p></div><strong>R$ 13,90</strong></article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-almoco" role="tabpanel" aria-labelledby="tab-almoco">
+        <div class="section-head">
+          <span>Das 11h às 14h30</span>
+          <h2>Almoço</h2>
+          <p>Self-service por peso com buffet de almoço e carnes, apresentado em leitura rápida para o cliente.</p>
+        </div>
+
+        <div class="price-board">
+          <article><span>Buffet Almoço</span><strong>R$ 7,89</strong><small>100g</small></article>
+          <article><span>Buffet Carnes</span><strong>R$ 8,90</strong><small>100g</small></article>
+        </div>
+
+        <div class="subtabs subtabs--featured subtabs--tier" role="tablist" aria-label="Estações do almoço">
+          <button class="subtab subtab--major is-active" type="button" data-target="almoco-buffet">Buffet</button>
+          <button class="subtab subtab--major" type="button" data-target="almoco-carnes">Carnes</button>
+        </div>
+
+        <div class="subpanel is-active subpanel--stack" id="almoco-buffet">
+          <div class="subtabs subtabs--nested" role="tablist" aria-label="Componentes do buffet de almoço">
+            <button class="subtab is-active" type="button" data-target="almoco-proteinas">Proteínas</button>
+            <button class="subtab" type="button" data-target="almoco-bases">Bases</button>
+            <button class="subtab" type="button" data-target="almoco-massas">Massas</button>
+            <button class="subtab" type="button" data-target="almoco-guarnicoes">Guarnições</button>
+            <button class="subtab" type="button" data-target="almoco-saladas">Saladas</button>
+            <button class="subtab" type="button" data-target="almoco-molhos">Molhos</button>
+          </div>
+
+          <div class="subpanel is-active" id="almoco-proteinas">
+            <div class="menu-list">
+              <article class="menu-item"><div><span>Buffet</span><h3>Frango a parmegiana</h3><p>Clássico de buffet para almoço por peso.</p></div><strong>R$ 7,89 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Frango grelhado</h3><p>Proteína leve da seleção diária.</p></div><strong>R$ 7,89 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Carne de panela</h3><p>Preparo quente conforme cardápio do dia.</p></div><strong>R$ 7,89 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Peixe ao molho</h3><p>Opção de proteína para variar o prato.</p></div><strong>R$ 7,89 / 100g</strong></article>
+            </div>
+          </div>
+
+          <div class="subpanel" id="almoco-bases" hidden>
+            <div class="menu-list">
+              <article class="menu-item"><div><span>Buffet</span><h3>Arroz branco</h3><p>Base clássica do self-service.</p></div><strong>R$ 7,89 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Arroz temperado</h3><p>Variação diária com legumes ou ervas.</p></div><strong>R$ 7,89 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Feijão</h3><p>Feijão do dia para acompanhar proteínas e guarnições.</p></div><strong>R$ 7,89 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Farofa</h3><p>Acompanhamento seco para finalizar o prato.</p></div><strong>R$ 7,89 / 100g</strong></article>
+            </div>
+          </div>
+
+          <div class="subpanel" id="almoco-massas" hidden>
+            <div class="menu-list">
+              <article class="menu-item"><div><span>Buffet</span><h3>Macarrão ao molho</h3><p>Massa quente com molho do dia.</p></div><strong>R$ 7,89 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Lasanha</h3><p>Opção gratinada conforme produção da cozinha.</p></div><strong>R$ 7,89 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Panqueca</h3><p>Recheios rotativos no serviço do almoço.</p></div><strong>R$ 7,89 / 100g</strong></article>
+            </div>
+          </div>
+
+          <div class="subpanel" id="almoco-guarnicoes" hidden>
+            <div class="menu-list">
+              <article class="menu-item"><div><span>Buffet</span><h3>Legumes salteados</h3><p>Guarnição quente para equilibrar o prato.</p></div><strong>R$ 7,89 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Purê</h3><p>Batata ou macaxeira conforme disponibilidade.</p></div><strong>R$ 7,89 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Batata gratinada</h3><p>Guarnição cremosa da seleção diária.</p></div><strong>R$ 7,89 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Vinagrete</h3><p>Acompanhamento fresco para carnes e bases.</p></div><strong>R$ 7,89 / 100g</strong></article>
+            </div>
+          </div>
+
+          <div class="subpanel" id="almoco-saladas" hidden>
+            <div class="menu-list">
+              <article class="menu-item"><div><span>Buffet</span><h3>Folhas verdes</h3><p>Alface, rúcula e folhas conforme disponibilidade.</p></div><strong>R$ 7,89 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Salada de legumes</h3><p>Opções cozidas e temperadas do dia.</p></div><strong>R$ 7,89 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Maionese</h3><p>Clássico frio de self-service.</p></div><strong>R$ 7,89 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Tomate e cebola</h3><p>Base fresca para montar saladas rápidas.</p></div><strong>R$ 7,89 / 100g</strong></article>
+            </div>
+          </div>
+
+          <div class="subpanel" id="almoco-molhos" hidden>
+            <div class="menu-list">
+              <article class="menu-item"><div><span>Buffet</span><h3>Molho da casa</h3><p>Para saladas e acompanhamentos frios.</p></div><strong>R$ 7,89 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Azeite e vinagre</h3><p>Finalização clássica para saladas.</p></div><strong>R$ 7,89 / 100g</strong></article>
+              <article class="menu-item"><div><span>Buffet</span><h3>Pimentas e temperos</h3><p>Complementos conforme disponibilidade no balcão.</p></div><strong>R$ 7,89 / 100g</strong></article>
+            </div>
+          </div>
+        </div>
+
+        <div class="subpanel" id="almoco-carnes" hidden>
+          <div class="menu-list">
+            <article class="menu-item"><div><span>Carnes</span><h3>Buffet Carnes</h3><p>Proteínas do dia servidas por peso para complementar o almoço.</p></div><strong>R$ 8,90 / 100g</strong></article>
+            <article class="menu-item"><div><span>Carnes</span><h3>Carne bovina</h3><p>Cortes e preparos rotativos do balcão quente.</p></div><strong>R$ 8,90 / 100g</strong></article>
+            <article class="menu-item"><div><span>Carnes</span><h3>Frango</h3><p>Grelhado, ao molho ou empanado conforme produção.</p></div><strong>R$ 8,90 / 100g</strong></article>
+            <article class="menu-item"><div><span>Carnes</span><h3>Peixe</h3><p>Opção do dia quando disponível.</p></div><strong>R$ 8,90 / 100g</strong></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-sopas" role="tabpanel" aria-labelledby="tab-sopas">
+        <div class="section-head">
+          <span>Das 16h às 20h</span>
+          <h2>Sopas</h2>
+          <p>Sopas e mungunzá para o fim de tarde, com sabor do dia e acompanhamento.</p>
+        </div>
+        <div class="menu-list">
+          <article class="menu-item menu-item--feature"><div><span>Sopas e Mungunzá</span><h3>Tijela</h3><p>Verificar sabor do dia. Acompanha torradas ou pão, a partir das 16h.</p></div><strong>R$ 14,99</strong></article>
+          <article class="menu-item"><div><span>Sopa</span><h3>Pote</h3><p>Opção do dia no pote.</p></div><strong>R$ 14,99</strong></article>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-bebidas" role="tabpanel" aria-labelledby="tab-bebidas">
+        <div class="section-head">
+          <span>Cafeteria e bebidas</span>
+          <h2>Cafés & Bebidas</h2>
+          <p>Cafés, gelados, shakes, chás, sucos e bebidas do cardápio original do Violeta.</p>
+        </div>
+
+        <div class="subtabs" role="tablist" aria-label="Categorias de cafés e bebidas">
+          <button class="subtab is-active" type="button" data-target="bebidas-cafes">Cafés</button>
+          <button class="subtab" type="button" data-target="bebidas-gelados">Gelados</button>
+          <button class="subtab" type="button" data-target="bebidas-sucos">Sucos</button>
+          <button class="subtab" type="button" data-target="bebidas-frias">Bebidas</button>
+          <button class="subtab" type="button" data-target="bebidas-chas">Chás</button>
+        </div>
+
+        <div class="subpanel is-active subpanel--stack" id="bebidas-cafes">
+          <div class="subtabs subtabs--nested" role="tablist" aria-label="Tipos de cafés">
+            <button class="subtab is-active" type="button" data-target="cafes-espressos">Espressos</button>
+            <button class="subtab" type="button" data-target="cafes-com-leite">Com leite</button>
+            <button class="subtab" type="button" data-target="cafes-capuccinos">Capuccinos</button>
+            <button class="subtab" type="button" data-target="cafes-especiais">Especiais</button>
+            <button class="subtab" type="button" data-target="cafes-coados">Coado</button>
+          </div>
+
+          <div class="subpanel is-active" id="cafes-espressos">
+            <div class="menu-list">
+              <article class="menu-item"><div><span>Espresso</span><h3>Espresso P</h3></div><strong>R$ 6,50</strong></article>
+              <article class="menu-item"><div><span>Espresso</span><h3>Espresso G</h3></div><strong>R$ 9,90</strong></article>
+              <article class="menu-item"><div><span>Espresso</span><h3>Espresso Descafeinado</h3></div><strong>R$ 12,90</strong></article>
+            </div>
+          </div>
+
+          <div class="subpanel" id="cafes-com-leite" hidden>
+            <div class="menu-list">
+              <article class="menu-item"><div><span>Café com leite</span><h3>Espresso com Leite P</h3><p>Café espresso e leite vaporizado.</p></div><strong>R$ 7,50</strong></article>
+              <article class="menu-item"><div><span>Café com leite</span><h3>Espresso com Leite G</h3></div><strong>R$ 10,90</strong></article>
+              <article class="menu-item"><div><span>Café com leite</span><h3>Espumone</h3><p>Café espresso e leite vaporizado.</p></div><strong>R$ 15,00</strong></article>
+              <article class="menu-item"><div><span>Café com leite</span><h3>Espumone sem Lactose</h3></div><strong>R$ 17,00</strong></article>
+              <article class="menu-item"><div><span>Café com leite</span><h3>Espumone com Leite Vegetal</h3><p>Café espresso e leite de castanha vaporizado.</p></div><strong>R$ 19,00</strong></article>
+            </div>
+          </div>
+
+          <div class="subpanel" id="cafes-capuccinos" hidden>
+            <div class="menu-list">
+              <article class="menu-item"><div><span>Capuccino</span><h3>Capuccino</h3><p>Café, leite vaporizado e chocolates.</p></div><strong>R$ 15,00</strong></article>
+              <article class="menu-item"><div><span>Capuccino</span><h3>Capuccino sem Lactose</h3></div><strong>R$ 17,00</strong></article>
+              <article class="menu-item"><div><span>Capuccino</span><h3>Capuccino à Moda</h3><p>Café, leite vaporizado, chocolates e canela.</p></div><strong>R$ 15,00</strong></article>
+            </div>
+          </div>
+
+          <div class="subpanel" id="cafes-especiais" hidden>
+            <div class="menu-list">
+              <article class="menu-item"><div><span>Especial</span><h3>Café com Chantilly</h3></div><strong>R$ 12,90</strong></article>
+              <article class="menu-item"><div><span>Especial</span><h3>Café com Paçoca</h3></div><strong>R$ 19,90</strong></article>
+            </div>
+          </div>
+
+          <div class="subpanel" id="cafes-coados" hidden>
+            <div class="menu-list">
+              <article class="menu-item"><div><span>Coado</span><h3>Café Coado</h3></div><strong>R$ 8,50</strong></article>
+              <article class="menu-item"><div><span>Coado</span><h3>Café Coado com Leite</h3></div><strong>R$ 9,90</strong></article>
+            </div>
+          </div>
+        </div>
+
+        <div class="subpanel" id="bebidas-gelados" hidden>
+          <div class="menu-list">
+            <article class="menu-item"><div><span>Gelado</span><h3>Violeta Frapê</h3><p>Sorvete creme, sorvete café, café espresso, leite e calda de chocolate.</p></div><strong>R$ 22,90</strong></article>
+            <article class="menu-item"><div><span>Shake</span><h3>Café Shake</h3><p>Leite e sorvete de café.</p></div><strong>R$ 19,90</strong></article>
+            <article class="menu-item"><div><span>Shake</span><h3>Chocolate Shake</h3><p>Leite e sorvete de chocolate.</p></div><strong>R$ 19,90</strong></article>
+            <article class="menu-item"><div><span>Shake</span><h3>Creme Shake</h3><p>Leite, sorvete de creme e calda de chocolate.</p></div><strong>R$ 19,90</strong></article>
+            <article class="menu-item"><div><span>Shake</span><h3>Paçoca Shake</h3><p>Leite, sorvete de creme e paçoca.</p></div><strong>R$ 20,90</strong></article>
+            <article class="menu-item"><div><span>Achocolatado</span><h3>Quente</h3></div><strong>R$ 12,90</strong></article>
+            <article class="menu-item"><div><span>Achocolatado</span><h3>Gelado</h3></div><strong>R$ 12,90</strong></article>
+          </div>
+        </div>
+
+        <div class="subpanel" id="bebidas-sucos" hidden>
+          <div class="menu-list">
+            <article class="menu-item"><div><span>Sucos</span><h3>Copo</h3><p>Polpas: abacaxi, abacaxi com hortelã e limão, acerola, caju, goiaba, graviola, manga, maracujá, uva e tamarindo.</p></div><strong>R$ 7,90</strong></article>
+            <article class="menu-item"><div><span>Sucos</span><h3>500ml</h3></div><strong>R$ 15,90</strong></article>
+            <article class="menu-item"><div><span>Sucos</span><h3>1L</h3><p>Naturais: laranja e limão.</p></div><strong>R$ 22,90</strong></article>
+          </div>
+        </div>
+
+        <div class="subpanel" id="bebidas-frias" hidden>
+          <div class="menu-list">
+            <article class="menu-item"><div><span>Bebida</span><h3>Água sem Gás</h3></div><strong>R$ 5,00</strong></article>
+            <article class="menu-item"><div><span>Bebida</span><h3>Água com Gás</h3></div><strong>R$ 6,90</strong></article>
+            <article class="menu-item"><div><span>Bebida</span><h3>Refrigerantes</h3><p>KS ou lata.</p></div><strong>R$ 7,90</strong></article>
+            <article class="menu-item"><div><span>Bebida</span><h3>Schweppes</h3><p>Citrus e tônica.</p></div><strong>R$ 7,90</strong></article>
+            <article class="menu-item"><div><span>Bebida</span><h3>Schweppes Mixed</h3><p>Maracujá e vodka.</p></div><strong>R$ 14,90</strong></article>
+            <article class="menu-item"><div><span>Bebida</span><h3>Monster 269ml</h3></div><strong>R$ 11,90</strong></article>
+            <article class="menu-item"><div><span>Bebida</span><h3>Monster 473ml</h3></div><strong>R$ 14,90</strong></article>
+            <article class="menu-item"><div><span>Cerveja</span><h3>Long Neck</h3><p>Eisenbahn, Amstel, Heineken.</p></div><strong>R$ 11,90</strong></article>
+            <article class="menu-item"><div><span>Cerveja</span><h3>600ml</h3></div><strong>R$ 21,00</strong></article>
+            <article class="menu-item"><div><span>Bebida</span><h3>Soda Italiana sem Álcool</h3><p>Maçã verde, blue curaçau, morango e gengibre.</p></div><strong>R$ 12,90</strong></article>
+            <article class="menu-item"><div><span>Bebida</span><h3>Sprite Lemon Fresh</h3></div><strong>R$ 9,90</strong></article>
+            <article class="menu-item"><div><span>Bebida</span><h3>Power ADE</h3></div><strong>R$ 9,90</strong></article>
+          </div>
+        </div>
+
+        <div class="subpanel" id="bebidas-chas" hidden>
+          <div class="menu-list">
+            <article class="menu-item"><div><span>Chá</span><h3>Chá Infusão</h3><p>Consultar sabores.</p></div><strong>R$ 8,50</strong></article>
+            <article class="menu-item"><div><span>Chá</span><h3>Chá Gelado</h3></div><strong>R$ 9,90</strong></article>
+            <article class="menu-item"><div><span>Chá</span><h3>Ice Tea Leão</h3><p>Limão ou pêssego.</p></div><strong>R$ 7,90</strong></article>
+            <article class="menu-item"><div><span>Chá</span><h3>Ice Tea com Gás</h3><p>Chá preto com limão.</p></div><strong>R$ 7,90</strong></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-doces" role="tabpanel" aria-labelledby="tab-doces">
+        <div class="section-head">
+          <span>Bolos, tortas e sobremesas</span>
+          <h2>Doces</h2>
+          <p>Mini bolos, tortas, docinhos, brownies e sobremesas do cardápio original.</p>
+        </div>
+
+        <div class="subtabs" role="tablist" aria-label="Categorias de doces">
+          <button class="subtab is-active" type="button" data-target="doces-bolos">Bolos e Tortas</button>
+          <button class="subtab" type="button" data-target="doces-sobremesas">Sobremesas</button>
+          <button class="subtab" type="button" data-target="doces-brownies">Brownies</button>
+        </div>
+
+        <div class="subpanel is-active" id="doces-bolos">
+          <div class="menu-list">
+            <article class="menu-item"><div><span>Mini bolo</span><h3>Macaxeira</h3></div><strong>R$ 13,50</strong></article>
+            <article class="menu-item"><div><span>Mini bolo</span><h3>Noiva</h3></div><strong>R$ 17,90</strong></article>
+            <article class="menu-item"><div><span>Mini bolo</span><h3>Fit</h3><p>Zero açúcar e zero lactose.</p></div><strong>R$ 15,90</strong></article>
+            <article class="menu-item"><div><span>Torta</span><h3>Fatia</h3><p>Consultar sabores.</p></div><strong>R$ 19,50</strong></article>
+            <article class="menu-item"><div><span>Torta</span><h3>Mini Torta</h3></div><strong>R$ 15,90</strong></article>
+            <article class="menu-item"><div><span>Bolo de pote</span><h3>Noiva</h3></div><strong>R$ 13,90</strong></article>
+            <article class="menu-item"><div><span>Bolo de pote</span><h3>Diversos</h3></div><strong>R$ 10,90</strong></article>
+          </div>
+        </div>
+
+        <div class="subpanel" id="doces-sobremesas" hidden>
+          <div class="menu-list">
+            <article class="menu-item"><div><span>Docinho</span><h3>Brigadeiro</h3><p>Chocolate e colorido, Violeta.</p></div><strong>R$ 5,50</strong></article>
+            <article class="menu-item"><div><span>Docinho</span><h3>Brigadeiro de Café</h3></div><strong>R$ 6,00</strong></article>
+            <article class="menu-item"><div><span>Docinho</span><h3>Bem Casado</h3></div><strong>R$ 4,90</strong></article>
+            <article class="menu-item"><div><span>Docinho</span><h3>Surpresa de Uva</h3></div><strong>R$ 6,00</strong></article>
+            <article class="menu-item"><div><span>Docinho</span><h3>Ninho com Nutella</h3></div><strong>R$ 6,00</strong></article>
+            <article class="menu-item"><div><span>Sobremesa</span><h3>Pudim</h3><p>Fatia.</p></div><strong>R$ 13,50</strong></article>
+            <article class="menu-item"><div><span>Sobremesa</span><h3>Cartola</h3></div><strong>R$ 20,90</strong></article>
+            <article class="menu-item"><div><span>Sobremesa</span><h3>Cartola Desconstruída</h3><p>Banana caramelizada, queijo manteiga e sorvete de creme.</p></div><strong>R$ 25,90</strong></article>
+            <article class="menu-item"><div><span>Sobremesa</span><h3>Tortinhas</h3><p>Limão, maracujá, maçã e morango.</p></div><strong>R$ 10,90</strong></article>
+          </div>
+        </div>
+
+        <div class="subpanel" id="doces-brownies" hidden>
+          <div class="menu-list">
+            <article class="menu-item"><div><span>Brownie</span><h3>Tradicional</h3></div><strong>R$ 10,90</strong></article>
+            <article class="menu-item"><div><span>Brownie</span><h3>Com Sorvete</h3></div><strong>R$ 15,90</strong></article>
+            <article class="menu-item"><div><span>Brownie</span><h3>Com Cobertura</h3></div><strong>R$ 16,50</strong></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-info" role="tabpanel" aria-labelledby="tab-info">
+        <div class="section-head">
+          <span>Violeta Café e Restaurante</span>
+          <h2>Informações</h2>
+          <p>Rua do Brum, 170. Café da manhã, almoço self-service e sopas de fim de tarde.</p>
+        </div>
+
+        <div class="info-grid">
+          <article><span>Endereço</span><p>Rua do Brum, 170</p></article>
+          <article><span>Horário</span><p>Segunda a sexta, 7h às 20h</p></article>
+          <article><span>Café da Manhã</span><p>7h às 9h30</p></article>
+          <article><span>Almoço</span><p>11h às 14h30</p></article>
+          <article><span>Sopas</span><p>16h às 20h</p></article>
+          <article><span>WhatsApp</span><p>(81) 9235-1617</p></article>
+          <article><span>Instagram</span><p>@violetacafeerestaurante</p></article>
+        </div>
+      </section>
+    </div>
+
+    <footer class="menu-footer">
+      <div class="footer-copy">
+        <span>Violeta Café e Restaurante</span>
+        <p>Rua do Brum, 170</p>
+      </div>
+      <div class="footer-brand" aria-label="Produto QrStack">
+        <div class="qrstack-lockup">
+          <span class="product-copy">Produto</span>
+          <img class="qrstack-mark" src="assets/qrstack-mark.png" alt="">
+        </div>
+        <img class="qrstack-wordmark" src="assets/qrstack-wordmark.png" alt="QrStack">
+      </div>
+    </footer>
+  </main>
+
+  <script src="script.js?v=violeta-v13-fixed-nav-20260605"></script>
+</body>
+</html>
