@@ -994,51 +994,53 @@ async function renderClientPortal(slug) {
   const storyLink = menu.storyLink || restaurantPublicUrl(restaurant);
   setTheme(restaurant);
   app.innerHTML = `
-    <div class="admin-layout">
-      ${renderAdminHero("Painel do restaurante", "Preencha o cardápio do dia uma vez. A QrStack atualiza o cardápio e prepara o Story.", restaurant.symbolUrl)}
-      ${renderTopbar([
-        [clientPortalLink(restaurant), "Formulário", true],
-        [publicMenuHash(restaurant, "direct"), "Ver cardápio", false],
-      ], restaurant)}
-      <main class="page page--narrow">
-        <section class="section">
+    <div class="client-form-shell">
+      <header class="client-form-header">
+        <img src="${restaurant.logoUrl}" alt="${restaurant.name}" />
+        <div>
+          <p class="eyebrow">QrStack</p>
+          <h1>${restaurant.name}</h1>
+          <p>Atualize o cardápio do dia e gere o Story.</p>
+        </div>
+      </header>
+      <main class="client-form-page">
+        <section class="section client-step">
           <div class="section__head">
-            <p class="eyebrow">Acesso do cliente</p>
-            <h2>${restaurant.name}</h2>
-            <p>Por enquanto, o restaurante só vê o formulário e a geração de Story. Insights ficam na sua central QrStack.</p>
+            <p class="eyebrow">Formulário</p>
+            <h2>Cardápio de hoje</h2>
           </div>
-          <form id="menu-form" class="card form-grid">
+          <form id="menu-form" class="card form-grid client-menu-form">
             <input type="hidden" name="menuId" value="${menu.id}" />
-            ${field("Título", "title", menu.title, "Ex: Buffet de hoje")}
-            ${field("Data", "date", menu.date, "", "date")}
-            ${field("Preço", "price", menu.price, "Ex: R$ 59,90/kg")}
-            ${field("Horário", "serviceHours", menu.serviceHours, "Ex: Almoço das 11h às 14h30")}
-            ${field("Link do Story", "storyLink", storyLink, "Cole aqui o link que deve aparecer no Story", "url")}
+            <input type="hidden" name="title" value="${escapeAttr(menu.title || "Cardápio de hoje")}" />
+            <input type="hidden" name="date" value="${escapeAttr(todayIso())}" />
+            <input type="hidden" name="price" value="${escapeAttr(menu.price || "")}" />
+            <input type="hidden" name="serviceHours" value="${escapeAttr(menu.serviceHours || "")}" />
             ${restaurant.slug === "amaro-testes" ? renderAmaroOriginalForm(menuItems) : renderGenericItemsTextarea(menuItems)}
             <div class="field field--full">
               <label for="notes">Observações</label>
               <textarea id="notes" name="notes" placeholder="Observações do dia">${menu.notes || ""}</textarea>
             </div>
             <div class="actions field--full">
-              <button type="submit">Salvar e atualizar cardápio</button>
-              <button type="button" class="secondary" id="generate-story">Gerar Story</button>
+              <button type="submit">Enviar</button>
             </div>
           </form>
         </section>
 
-        <section class="section" id="story-panel">
+        <section class="section client-step" id="story-panel">
           <div class="section__head">
-            <p class="eyebrow">Story automático</p>
-            <h2>Arte pronta para publicar</h2>
-            <p>O botão de postar tenta usar compartilhamento nativo no celular e depois abre o Instagram. No desktop, baixa a arte como fallback.</p>
+            <p class="eyebrow">Story</p>
+            <h2>Arte pronta</h2>
           </div>
           <div class="story-workbench">
             <div class="card">
-              <h3>Fluxo do cliente</h3>
-              <p class="muted">Depois de salvar o formulário, o restaurante baixa/compartilha o Story sem acessar insights ou configurações internas.</p>
+              <h3>Link do Story</h3>
+              <div class="field">
+                <label for="storyLink">Hyperlink</label>
+                <input id="storyLink" name="storyLink" type="url" value="${escapeAttr(storyLink)}" placeholder="Cole o link do cardápio" />
+              </div>
               <div class="actions">
                 <button type="button" id="download-story">Baixar Story</button>
-                <button type="button" class="secondary" id="share-story">Postar arte</button>
+                <button type="button" class="secondary" id="share-story">Compartilhar Story</button>
                 <button type="button" class="ghost" data-copy-input="storyLink">Copiar link do Story</button>
               </div>
             </div>
@@ -1129,34 +1131,21 @@ function attachClientHandlers(restaurant, menu) {
   document.getElementById("menu-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
+    const storyLinkInput = document.querySelector('[name="storyLink"]');
+    formData.set("storyLink", storyLinkInput?.value || restaurantPublicUrl(restaurant));
     await saveMenuForm(restaurant, menu.id, formData);
     const updatedMenu = getLatestMenu(restaurant.id);
     drawStory(restaurant, updatedMenu, getMenuItems(updatedMenu.id));
-    toast("Cardápio atualizado e publicado.");
+    saveStoryPreview(restaurant, updatedMenu);
+    toast("Enviado. Story pronto abaixo.");
+    document.getElementById("story-panel").scrollIntoView({ behavior: "smooth" });
   });
 
-  document.getElementById("generate-story").addEventListener("click", () => {
-    document.getElementById("menu-form").requestSubmit();
+  document.querySelector('[name="storyLink"]').addEventListener("input", (event) => {
     const latestMenu = getLatestMenu(restaurant.id);
-    state.storyAssets.push({
-      id: crypto.randomUUID(),
-      restaurantId: restaurant.id,
-      menuDayId: latestMenu.id,
-      imageUrl: "local-canvas-preview",
-      templateName: "daily-menu-v1",
-      createdAt: new Date().toISOString(),
-    });
-    apiPost({
-      action: "saveStoryAsset",
-      slug: restaurant.slug,
-      token: restaurant.adminToken || ACTIVE_SANDBOX_TOKEN,
-      menu_day_id: latestMenu.id,
-      image_url: "local-canvas-preview",
-      template_name: "daily-menu-v1",
-    }).catch((error) => console.warn("QrStack story API unavailable:", error.message));
-    trackEvent(restaurant, "story_generated", "admin", latestMenu.id);
+    latestMenu.storyLink = event.currentTarget.value.trim();
     saveState();
-    document.getElementById("story-panel").scrollIntoView({ behavior: "smooth" });
+    drawStory(restaurant, latestMenu, getMenuItems(latestMenu.id));
   });
 
   document.getElementById("download-story").addEventListener("click", () => {
@@ -1167,9 +1156,30 @@ function attachClientHandlers(restaurant, menu) {
 
   document.getElementById("share-story").addEventListener("click", async () => {
     const latestMenu = getLatestMenu(restaurant.id);
-    await shareStory(restaurant);
+    await shareStory(restaurant, latestMenu);
     trackEvent(restaurant, "story_shared", "admin", latestMenu.id);
   });
+}
+
+function saveStoryPreview(restaurant, menu) {
+  state.storyAssets.push({
+    id: crypto.randomUUID(),
+    restaurantId: restaurant.id,
+    menuDayId: menu.id,
+    imageUrl: "local-canvas-preview",
+    templateName: "daily-menu-v1",
+    createdAt: new Date().toISOString(),
+  });
+  apiPost({
+    action: "saveStoryAsset",
+    slug: restaurant.slug,
+    token: restaurant.adminToken || ACTIVE_SANDBOX_TOKEN,
+    menu_day_id: menu.id,
+    image_url: "local-canvas-preview",
+    template_name: "daily-menu-v1",
+  }).catch((error) => console.warn("QrStack story API unavailable:", error.message));
+  trackEvent(restaurant, "story_generated", "admin", menu.id);
+  saveState();
 }
 
 async function saveMenuForm(restaurant, menuId, formData) {
@@ -1552,23 +1562,34 @@ function priceSummary(menu, menuItems = []) {
   return `${brl.format(prices[0])} a ${brl.format(prices[prices.length - 1])}`;
 }
 
-async function shareStory(restaurant) {
+async function shareStory(restaurant, menu = null) {
+  const storyLink = menu?.storyLink || document.querySelector('[name="storyLink"]')?.value || restaurantPublicUrl(restaurant);
+  await copyToClipboard(storyLink);
+  toast("Link copiado. Cole no sticker do Instagram.");
   const canvas = document.getElementById("story-canvas");
   const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
   const file = new File([blob], `story-${restaurant.slug}.png`, { type: "image/png" });
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    await navigator.share({
-      files: [file],
-      title: `Story ${restaurant.name}`,
-      text: "Story do cardápio do dia pronto para publicar.",
-    });
+    try {
+      await navigator.share({
+        files: [file],
+        title: `Story ${restaurant.name}`,
+        text: `Story do cardápio do dia pronto para publicar. Link: ${storyLink}`,
+      });
+    } catch {
+      downloadStory(restaurant);
+    }
     window.location.href = "instagram://story-camera";
     return;
   }
   downloadStory(restaurant);
+  toast("Link copiado. Cole no sticker de link do Instagram.");
+  setTimeout(() => {
+    window.location.href = "instagram://story-camera";
+  }, 400);
   setTimeout(() => {
     window.location.href = "https://www.instagram.com/";
-  }, 400);
+  }, 900);
 }
 
 function metric(label, value) {

@@ -1,0 +1,15 @@
+{
+  "name": "QrStack",
+  "short_name": "QrStack",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#edf3f7",
+  "theme_color": "#0b2239",
+  "icons": [
+    {
+      "src": "assets/qrstack-mark.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
