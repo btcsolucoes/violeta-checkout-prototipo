@@ -11,6 +11,9 @@ create table if not exists restaurants (
   whatsapp_number text,
   instagram_url text,
   maps_url text,
+  github_repo text,
+  github_pages_url text,
+  assets_base_url text,
   admin_token text not null default encode(gen_random_bytes(24), 'hex'),
   reminder_time time,
   reminder_enabled boolean default false,
@@ -54,8 +57,25 @@ create table if not exists catalog_items (
   description text,
   price text,
   image_url text,
+  source_repo text,
+  source_path text,
+  source_url text,
   sort_order integer not null default 0,
   is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists restaurant_assets (
+  id text primary key,
+  restaurant_id uuid not null references restaurants(id) on delete cascade,
+  catalog_item_id text references catalog_items(id) on delete set null,
+  asset_type text not null,
+  label text not null,
+  url text not null,
+  source_repo text,
+  source_path text,
+  source_url text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -116,6 +136,7 @@ create index if not exists idx_restaurants_slug on restaurants(slug);
 create index if not exists idx_menu_days_restaurant_date on menu_days(restaurant_id, date desc);
 create index if not exists idx_menu_items_menu_day on menu_items(menu_day_id, sort_order);
 create index if not exists idx_catalog_items_restaurant_section on catalog_items(restaurant_id, section_id, sort_order);
+create index if not exists idx_restaurant_assets_restaurant on restaurant_assets(restaurant_id, asset_type);
 create index if not exists idx_form_fields_restaurant on form_fields(restaurant_id, sort_order);
 create index if not exists idx_form_options_field on form_options(field_id, sort_order);
 create index if not exists idx_events_restaurant_created on events(restaurant_id, created_at desc);

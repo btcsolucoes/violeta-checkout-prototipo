@@ -23,6 +23,9 @@ const DEFAULT_STATE = {
       instagramUrl: "https://instagram.com/amarotestes",
       mapsUrl: "https://maps.google.com/?q=Amaro%20Testes",
       address: "Ambiente sandbox",
+      githubRepo: "btcsolucoes/carda-pio",
+      githubPagesUrl: "https://btcsolucoes.github.io/carda-pio/",
+      assetsBaseUrl: "https://btcsolucoes.github.io/carda-pio/",
       adminToken: ACTIVE_SANDBOX_TOKEN,
       reminderTime: "09:00",
       reminderEnabled: false,
@@ -41,6 +44,9 @@ const DEFAULT_STATE = {
       instagramUrl: "https://instagram.com/cafemodelo",
       mapsUrl: "https://maps.google.com/?q=Caf%C3%A9%20Modelo",
       address: "Av. Modelo, 250",
+      githubRepo: "",
+      githubPagesUrl: "",
+      assetsBaseUrl: "",
       adminToken: "demo-cafe",
       reminderTime: "08:30",
       reminderEnabled: true,
@@ -120,13 +126,28 @@ function loadState() {
     const stored = localStorage.getItem(STORE_KEY);
     if (!stored) return structuredClone(DEFAULT_STATE);
     const parsed = JSON.parse(stored);
-    return {
+    return hydratePersistedState({
       ...structuredClone(DEFAULT_STATE),
       ...parsed,
-    };
+    });
   } catch {
     return structuredClone(DEFAULT_STATE);
   }
+}
+
+function hydratePersistedState(parsedState) {
+  const defaultsBySlug = new Map(DEFAULT_STATE.restaurants.map((restaurant) => [restaurant.slug, restaurant]));
+  parsedState.restaurants = (parsedState.restaurants || []).map((restaurant) => {
+    const defaults = defaultsBySlug.get(restaurant.slug) || {};
+    return {
+      ...defaults,
+      ...restaurant,
+      githubRepo: restaurant.githubRepo || defaults.githubRepo || "",
+      githubPagesUrl: restaurant.githubPagesUrl || defaults.githubPagesUrl || "",
+      assetsBaseUrl: restaurant.assetsBaseUrl || defaults.assetsBaseUrl || "",
+    };
+  });
+  return parsedState;
 }
 
 function saveState() {
@@ -215,6 +236,9 @@ function fromSheetRestaurant(row) {
     instagramUrl: row.instagram_url || "#",
     mapsUrl: row.maps_url || "#",
     address: row.address || "",
+    githubRepo: row.github_repo || "",
+    githubPagesUrl: row.github_pages_url || "",
+    assetsBaseUrl: row.assets_base_url || "",
     adminToken: row.admin_token || ACTIVE_SANDBOX_TOKEN,
     reminderTime: row.reminder_time || "",
     reminderEnabled: String(row.reminder_enabled).toUpperCase() === "TRUE",
@@ -363,6 +387,61 @@ function getAllCatalogItems() {
 
 function getCatalogForRestaurant(restaurant) {
   return getAllCatalogItems().filter((item) => item.restaurant_id === restaurant.id);
+}
+
+function getRestaurantDatabase(restaurant) {
+  const dishes = getCatalogForRestaurant(restaurant);
+  const dishPhotos = dishes
+    .filter((item) => item.image_url)
+    .map((item) => ({
+      id: `photo_${item.id}`,
+      type: "dish",
+      label: item.name,
+      category: item.section_title || item.category || "Pratos",
+      url: catalogImageUrl(item.image_url, restaurant),
+      rawUrl: item.image_url,
+      dishId: item.id,
+    }));
+  const logoAssets = [
+    restaurant.logoUrl
+      ? {
+          id: `logo_${restaurant.id}`,
+          type: "logo",
+          label: `${restaurant.name} - logo`,
+          category: "Identidade visual",
+          url: restaurant.logoUrl,
+          rawUrl: restaurant.logoUrl,
+        }
+      : null,
+    restaurant.symbolUrl && restaurant.symbolUrl !== restaurant.logoUrl
+      ? {
+          id: `symbol_${restaurant.id}`,
+          type: "symbol",
+          label: `${restaurant.name} - símbolo`,
+          category: "Identidade visual",
+          url: restaurant.symbolUrl,
+          rawUrl: restaurant.symbolUrl,
+        }
+      : null,
+  ].filter(Boolean);
+
+  return {
+    restaurant,
+    source: {
+      githubRepo: restaurant.githubRepo || "",
+      githubPagesUrl: restaurant.githubPagesUrl || "",
+      assetsBaseUrl: restaurant.assetsBaseUrl || "",
+      isConnected: Boolean(restaurant.githubRepo && restaurant.githubPagesUrl),
+    },
+    dishes,
+    assets: [...logoAssets, ...dishPhotos],
+    dishPhotos,
+    logoAssets,
+  };
+}
+
+function getAllRestaurantDatabases() {
+  return state.restaurants.map(getRestaurantDatabase);
 }
 
 function getAmaroSections() {
@@ -691,30 +770,48 @@ function renderHqStories() {
 }
 
 function renderHqCatalogBank() {
-  const catalog = getAllCatalogItems();
-  const byRestaurant = groupBy(catalog, "restaurant_id");
+  const databases = getAllRestaurantDatabases();
+  const catalog = databases.flatMap((database) => database.dishes);
+  const assets = databases.flatMap((database) => database.assets);
   return `
     <section class="section">
       <div class="section__head">
         <p class="eyebrow">Banco QrStack</p>
-        <h2>Pratos, preços e fotos</h2>
-        <p>Seu acervo por cliente: nome do prato, categoria, descrição, preço e imagem usada no cardápio público.</p>
+        <h2>Banco por restaurante</h2>
+        <p>Cada cliente tem uma base separada com pratos, preços, fotos, logo e origem do repositório GitHub Pages usado no cardápio.</p>
       </div>
       <div class="grid grid--three">
         ${metric("Pratos", catalog.length)}
-        ${metric("Com foto", catalog.filter((item) => item.image_url).length)}
-        ${metric("Categorias", new Set(catalog.map((item) => item.section_title || item.category)).size)}
+        ${metric("Fotos e logos", assets.length)}
+        ${metric("Repos conectados", databases.filter((database) => database.source.isConnected).length)}
       </div>
-      ${Object.entries(byRestaurant)
-        .map(([restaurantId, items]) => {
-      const restaurant = state.restaurants.find((rest) => rest.id === restaurantId);
-          const groups = groupBy(items, "section_title");
+      ${databases
+        .map((database) => {
+          const { restaurant, source, dishes, assets: restaurantAssets, logoAssets, dishPhotos } = database;
+          const groups = groupBy(dishes, "section_title");
           return `
-            <div class="section">
+            <div class="section restaurant-database">
               <div class="section__head">
-                <p class="eyebrow">${items.length} itens</p>
-                <h3>${restaurant?.name || "Cliente"}</h3>
+                <p class="eyebrow">${source.isConnected ? "GitHub Pages conectado" : "Banco local"}</p>
+                <h3>${restaurant.name}</h3>
               </div>
+              <div class="grid grid--three">
+                ${databaseSourceCard(database)}
+                ${databaseAssetSummaryCard(database)}
+                ${databaseLinksCard(database)}
+              </div>
+              ${restaurantAssets.length ? `
+                <div class="section catalog-section">
+                  <div class="section__head">
+                    <p class="eyebrow">${restaurantAssets.length} arquivos</p>
+                    <h3>Fotos usadas e identidade</h3>
+                  </div>
+                  <div class="asset-grid">
+                    ${logoAssets.map((asset) => renderAssetCard(asset, true)).join("")}
+                    ${dishPhotos.slice(0, 12).map((asset) => renderAssetCard(asset)).join("")}
+                  </div>
+                </div>
+              ` : ""}
               ${Object.entries(groups)
                 .map(
                   ([category, categoryItems]) => `
@@ -724,7 +821,7 @@ function renderHqCatalogBank() {
                         <h3>${category}</h3>
                       </div>
                       <div class="rail">
-                        ${categoryItems.map((item) => renderMenuItemCard(item, true)).join("")}
+                        ${categoryItems.map((item) => renderMenuItemCard(item, true, restaurant)).join("")}
                       </div>
                     </div>
                   `
@@ -735,6 +832,60 @@ function renderHqCatalogBank() {
         })
         .join("")}
     </section>
+  `;
+}
+
+function databaseSourceCard(database) {
+  const { source } = database;
+  return `
+    <article class="card source-card">
+      <p class="eyebrow">Origem</p>
+      <h3>${source.githubRepo || "Sem repositório"}</h3>
+      <p class="muted">${source.githubPagesUrl || "Cadastre o repositório GitHub Pages deste cardápio."}</p>
+      <div class="actions">
+        ${source.githubPagesUrl ? `<a class="button secondary" href="${source.githubPagesUrl}" target="_blank" rel="noreferrer">Abrir Pages</a>` : ""}
+        ${source.githubRepo ? `<a class="button ghost" href="https://github.com/${source.githubRepo}" target="_blank" rel="noreferrer">Abrir repo</a>` : ""}
+      </div>
+    </article>
+  `;
+}
+
+function databaseAssetSummaryCard(database) {
+  return `
+    <article class="card">
+      <p class="eyebrow">Arquivos</p>
+      <h3>${database.assets.length} assets</h3>
+      <p class="muted">${database.logoAssets.length} logo/símbolo • ${database.dishPhotos.length} fotos de pratos</p>
+    </article>
+  `;
+}
+
+function databaseLinksCard(database) {
+  const { restaurant } = database;
+  return `
+    <article class="card">
+      <p class="eyebrow">Acessos</p>
+      <h3>Links do cliente</h3>
+      <p class="muted">${location.origin}${location.pathname}${publicMenuHash(restaurant)}</p>
+      <div class="actions">
+        <a class="button secondary" href="${publicMenuHash(restaurant, "hq")}">Cardápio</a>
+        <a class="button ghost" href="${clientPortalLink(restaurant)}">Portal</a>
+      </div>
+    </article>
+  `;
+}
+
+function renderAssetCard(asset, featured = false) {
+  return `
+    <article class="asset-card ${featured ? "asset-card--featured" : ""}">
+      <div class="asset-card__media">
+        <img src="${asset.url}" alt="${escapeAttr(asset.label)}" loading="lazy" />
+      </div>
+      <div>
+        <p class="eyebrow">${asset.type === "dish" ? asset.category : "Logo"}</p>
+        <h3>${asset.label}</h3>
+      </div>
+    </article>
   `;
 }
 
@@ -1086,10 +1237,10 @@ function parseMenuItemLine(row, index) {
   };
 }
 
-function renderMenuItemCard(menuItem, showImage = false) {
+function renderMenuItemCard(menuItem, showImage = false, restaurant = null) {
   return `
     <article class="item-card">
-      ${showImage && menuItem.image_url ? `<div class="item-card__media"><img src="${catalogImageUrl(menuItem.image_url)}" alt="${escapeAttr(menuItem.name)}" loading="lazy" /></div>` : ""}
+      ${showImage && menuItem.image_url ? `<div class="item-card__media"><img src="${catalogImageUrl(menuItem.image_url, restaurant)}" alt="${escapeAttr(menuItem.name)}" loading="lazy" /></div>` : ""}
       <div class="item-card__top">
         <h3>${menuItem.name}</h3>
         ${menuItem.price ? `<span class="price">${menuItem.price}</span>` : menuItem.isHighlight ? '<span class="tag">Destaque</span>' : ""}
@@ -1143,7 +1294,7 @@ function renderFullCatalog(restaurant) {
                 <h3>${section.title}</h3>
               </div>
               <div class="rail">
-                ${items.map((menuItem) => renderMenuItemCard(menuItem, true)).join("")}
+                ${items.map((menuItem) => renderMenuItemCard(menuItem, true, restaurant)).join("")}
               </div>
             </div>
           `;
@@ -1153,9 +1304,16 @@ function renderFullCatalog(restaurant) {
   `;
 }
 
-function catalogImageUrl(imageUrl) {
+function catalogImageUrl(imageUrl, restaurant = null) {
   if (!imageUrl) return "";
   if (/^(https?:|data:|assets\/)/.test(imageUrl)) return imageUrl;
+  if (restaurant?.assetsBaseUrl) {
+    try {
+      return new URL(imageUrl, restaurant.assetsBaseUrl).toString();
+    } catch {
+      return `${restaurant.assetsBaseUrl.replace(/\/$/, "")}/${imageUrl.replace(/^\//, "")}`;
+    }
+  }
   return `assets/amaro/${imageUrl}`;
 }
 

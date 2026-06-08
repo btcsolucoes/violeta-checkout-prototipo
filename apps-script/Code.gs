@@ -42,6 +42,11 @@ function doGet(e) {
       return json({ ok: true, restaurant, catalog: getCatalogByRestaurant(restaurant.id) });
     }
 
+    if (action === 'getRestaurantDatabase') {
+      const restaurant = getRestaurantBySlug(params.slug);
+      return json({ ok: true, ...getRestaurantDatabase(restaurant) });
+    }
+
     if (action === 'getFormSchema') {
       const restaurant = getRestaurantBySlug(params.slug);
       return json({ ok: true, restaurant, fields: getFormSchemaByRestaurant(restaurant.id) });
@@ -191,6 +196,52 @@ function getCatalogByRestaurant(restaurantId) {
       const sectionSort = String(a.section_id || '').localeCompare(String(b.section_id || ''));
       return sectionSort || Number(a.sort_order || 0) - Number(b.sort_order || 0);
     });
+}
+
+function getRestaurantDatabase(restaurant) {
+  const catalog = getCatalogByRestaurant(restaurant.id);
+  const assets = [];
+  if (restaurant.logo_url) {
+    assets.push({
+      id: `logo_${restaurant.id}`,
+      restaurant_id: restaurant.id,
+      asset_type: 'logo',
+      label: `${restaurant.name} - logo`,
+      url: restaurant.logo_url,
+      source_url: restaurant.logo_url,
+    });
+  }
+  if (restaurant.symbol_url && restaurant.symbol_url !== restaurant.logo_url) {
+    assets.push({
+      id: `symbol_${restaurant.id}`,
+      restaurant_id: restaurant.id,
+      asset_type: 'symbol',
+      label: `${restaurant.name} - símbolo`,
+      url: restaurant.symbol_url,
+      source_url: restaurant.symbol_url,
+    });
+  }
+  catalog
+    .filter((item) => item.image_url)
+    .forEach((item) => {
+      assets.push({
+        id: `photo_${item.id}`,
+        restaurant_id: restaurant.id,
+        catalog_item_id: item.id,
+        asset_type: 'dish_photo',
+        label: item.name,
+        url: resolveAssetUrl(item.image_url, restaurant.assets_base_url),
+        source_url: item.image_url,
+      });
+    });
+  return { restaurant, catalog, assets };
+}
+
+function resolveAssetUrl(imageUrl, baseUrl) {
+  if (!imageUrl) return '';
+  if (/^(https?:|data:)/.test(imageUrl)) return imageUrl;
+  if (!baseUrl) return imageUrl;
+  return `${String(baseUrl).replace(/\/$/, '')}/${String(imageUrl).replace(/^\//, '')}`;
 }
 
 function getFormSchemaByRestaurant(restaurantId) {
