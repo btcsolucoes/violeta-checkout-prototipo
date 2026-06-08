@@ -7,6 +7,7 @@ const QRSTACK_API_URL =
   "https://script.google.com/macros/s/AKfycbxb7McfZcNZ1FwpJ1WXKS1NURWjE8AQdK5X7CYAL0zNQIH2UQdtnKCKQjlzmyyuQwrcuQ/exec";
 const ACTIVE_SANDBOX_SLUG = "amaro-testes";
 const ACTIVE_SANDBOX_TOKEN = "sandbox-amaro-2026";
+const OWNER_ACCESS_TOKEN = "qrstack-berna-2026";
 
 const DEFAULT_STATE = {
   restaurants: [
@@ -259,10 +260,43 @@ async function router() {
   const source = params.get("src") || "direct";
 
   if (!hash || parts[0] === "home") return renderHome();
-  if (parts[0] === "hq") return renderHq(parts[1] || "overview");
-  if (parts[0] === "admin") return renderClientPortal(parts[1] || ACTIVE_SANDBOX_SLUG);
+  if (parts[0] === "hq" || parts[0] === "central") return renderOwnerRoute(parts[1] || "overview", params);
+  if (parts[0] === "cliente" || parts[0] === "admin") return renderClientRoute(parts[1] || ACTIVE_SANDBOX_SLUG, params);
   if (parts[0] === "r") return renderPublicMenu(parts[1] || ACTIVE_SANDBOX_SLUG, source);
   renderHome();
+}
+
+function renderOwnerRoute(tab, params) {
+  if (!hasOwnerAccess(params)) return renderOwnerGate();
+  return renderHq(tab);
+}
+
+async function renderClientRoute(slug, params) {
+  const restaurant = await syncRestaurantFromApi(slug);
+  if (!hasClientAccess(restaurant, params)) return renderClientGate(restaurant);
+  return renderClientPortal(slug);
+}
+
+function hasOwnerAccess(params) {
+  return params.get("key") === OWNER_ACCESS_TOKEN;
+}
+
+function hasClientAccess(restaurant, params) {
+  const token = params.get("token");
+  const expectedToken = restaurant.adminToken || ACTIVE_SANDBOX_TOKEN;
+  return token === expectedToken;
+}
+
+function ownerLink(tab = "overview") {
+  return `#/hq/${tab}?key=${encodeURIComponent(OWNER_ACCESS_TOKEN)}`;
+}
+
+function clientPortalLink(restaurant) {
+  return `#/cliente/${restaurant.slug}?token=${encodeURIComponent(restaurant.adminToken || ACTIVE_SANDBOX_TOKEN)}`;
+}
+
+function publicMenuHash(restaurant, source = "qr") {
+  return `#/r/${restaurant.slug}?src=${source}`;
 }
 
 function setTheme(restaurant) {
@@ -299,6 +333,36 @@ function getMenuItems(menuDayId) {
 
 function getAmaroCatalog() {
   return Array.isArray(window.QRSTACK_AMARO_CATALOG) ? window.QRSTACK_AMARO_CATALOG : [];
+}
+
+function getAllCatalogItems() {
+  const catalog = [...getAmaroCatalog()];
+  const known = new Set(catalog.map((item) => `${item.restaurant_id}-${normalizeKey(item.name)}`));
+  state.menuDays.forEach((menu) => {
+    getMenuItems(menu.id).forEach((menuItem) => {
+      const key = `${menu.restaurantId}-${normalizeKey(menuItem.name)}`;
+      if (known.has(key)) return;
+      known.add(key);
+      catalog.push({
+        id: `bank_${menuItem.id}`,
+        restaurant_id: menu.restaurantId,
+        section_id: normalizeKey(menuItem.category) || "publicados",
+        section_title: menuItem.category || "Publicados",
+        name: menuItem.name,
+        category: menuItem.category,
+        description: menuItem.description || "",
+        price: menuItem.price || "",
+        image_url: "",
+        sort_order: menuItem.sortOrder,
+        is_active: "TRUE",
+      });
+    });
+  });
+  return catalog;
+}
+
+function getCatalogForRestaurant(restaurant) {
+  return getAllCatalogItems().filter((item) => item.restaurant_id === restaurant.id);
 }
 
 function getAmaroSections() {
@@ -358,14 +422,48 @@ function renderHome() {
         <p class="eyebrow">Protótipo de plataforma</p>
         <h1>Cardápio, Story e Insights em um fluxo só</h1>
         <div class="hero__meta">
-          <span class="pill">Multi-restaurante</span>
-          <span class="pill">Formulário próprio</span>
-          <span class="pill">Story automático</span>
+          <span class="pill">Central do dono</span>
+          <span class="pill">Portal do restaurante</span>
+          <span class="pill">Cardápio público</span>
         </div>
         <div class="actions">
           <a class="button" href="#/hq">Central QrStack</a>
-          <a class="button secondary" href="#/admin/${ACTIVE_SANDBOX_SLUG}">Acesso do restaurante</a>
-          <a class="button ghost" href="#/r/${ACTIVE_SANDBOX_SLUG}?src=qr">Cardápio público</a>
+          <a class="button secondary" href="#/cliente/${ACTIVE_SANDBOX_SLUG}">Portal do restaurante</a>
+          <a class="button ghost" href="${publicMenuHash(getRestaurant(ACTIVE_SANDBOX_SLUG))}">Cardápio público</a>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderOwnerGate() {
+  setSystemTheme();
+  app.innerHTML = `
+    <section class="hero">
+      <div class="hero__inner">
+        <img class="hero__logo" src="${ASSETS.qrstackWordmark}" alt="QrStack" />
+        <p class="eyebrow">Acesso interno</p>
+        <h1>Central QrStack</h1>
+        <p class="muted muted--light">Use o link interno com chave de dono para abrir clientes, respostas, banco de pratos, cardápios e insights.</p>
+        <div class="actions">
+          <a class="button ghost" href="#/home">Voltar</a>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderClientGate(restaurant) {
+  setTheme(restaurant);
+  app.innerHTML = `
+    <section class="hero">
+      <div class="hero__inner">
+        <img class="hero__logo" src="${restaurant.logoUrl}" alt="${restaurant.name}" />
+        <p class="eyebrow">Acesso do restaurante</p>
+        <h1>${restaurant.name}</h1>
+        <p class="muted muted--light">Este portal abre apenas pelo link privado do restaurante. A Central QrStack não fica disponível por aqui.</p>
+        <div class="actions">
+          <a class="button ghost" href="${publicMenuHash(restaurant)}">Ver cardápio público</a>
         </div>
       </div>
     </section>
@@ -379,15 +477,19 @@ function renderHq(tab = "overview") {
     <div class="admin-layout">
       ${renderAdminHero("Central QrStack", "Sua visão interna dos clientes, formulários, respostas, Stories e insights.", ASSETS.qrstackMark)}
       ${renderTopbar([
-        ["#/hq/overview", "Visão Geral", tab === "overview"],
-        ["#/hq/clientes", "Clientes", tab === "clientes"],
-        ["#/hq/respostas", "Respostas", tab === "respostas"],
-        ["#/hq/stories", "Stories", tab === "stories"],
-        ["#/hq/insights", "Insights", tab === "insights"],
+        [ownerLink("overview"), "Visão Geral", tab === "overview"],
+        [ownerLink("clientes"), "Clientes", tab === "clientes"],
+        [ownerLink("respostas"), "Respostas", tab === "respostas"],
+        [ownerLink("banco"), "Banco", tab === "banco"],
+        [ownerLink("cardapios"), "Cardápios", tab === "cardapios"],
+        [ownerLink("stories"), "Stories", tab === "stories"],
+        [ownerLink("insights"), "Insights", tab === "insights"],
       ])}
       <main class="page">
         ${tab === "clientes" ? renderHqClients(restaurants) : ""}
         ${tab === "respostas" ? renderHqResponses() : ""}
+        ${tab === "banco" ? renderHqCatalogBank() : ""}
+        ${tab === "cardapios" ? renderHqPublicMenus() : ""}
         ${tab === "stories" ? renderHqStories() : ""}
         ${tab === "insights" ? renderHqInsights() : ""}
         ${tab === "overview" ? renderHqOverview() : ""}
@@ -434,17 +536,23 @@ function renderHqOverview() {
   const todayEvents = state.events.filter((event) => isToday(event.createdAt)).length;
   const stories = state.storyAssets.length;
   const menus = state.menuDays.length;
+  const catalogItems = getAllCatalogItems().length;
   return `
     <section class="section">
       <div class="section__head">
         <p class="eyebrow">Operação</p>
         <h2>Painel central dos clientes</h2>
-        <p>Aqui ficam seus restaurantes, links de formulário, respostas publicadas, Stories gerados e insights internos.</p>
+        <p>Aqui ficam seus restaurantes, respostas recebidas, banco de pratos com fotos, links dos cardápios públicos, Stories gerados e insights internos.</p>
       </div>
       <div class="grid grid--three">
         ${metric("Clientes", totalRestaurants)}
-        ${metric("Acessos hoje", todayEvents)}
+        ${metric("Pratos no banco", catalogItems)}
         ${metric("Stories gerados", stories)}
+      </div>
+      <div class="grid grid--three">
+        ${metric("Publicações", menus)}
+        ${metric("Acessos hoje", todayEvents)}
+        ${metric("Fotos", getAllCatalogItems().filter((item) => item.image_url).length)}
       </div>
       <div class="card">
         <h3>Próxima automação</h3>
@@ -478,9 +586,14 @@ function renderHqClients(restaurants) {
                 <p class="eyebrow">${restaurant.slug}</p>
                 <h3>${restaurant.name}</h3>
                 <p class="muted">${restaurant.address || "Endereço não informado"}</p>
+                <div class="brand-swatch">
+                  <span style="background:${restaurant.primaryColor}"></span>
+                  <span style="background:${restaurant.secondaryColor}"></span>
+                  <img src="${restaurant.logoUrl}" alt="${restaurant.name}" />
+                </div>
                 <div class="actions">
-                  <a class="button" href="#/admin/${restaurant.slug}">Formulário do cliente</a>
-                  <a class="button secondary" href="#/r/${restaurant.slug}?src=qr">Cardápio público</a>
+                  <a class="button" href="${clientPortalLink(restaurant)}">Link do restaurante</a>
+                  <a class="button secondary" href="${publicMenuHash(restaurant)}">Cardápio público</a>
                 </div>
               </article>
             `
@@ -493,14 +606,29 @@ function renderHqClients(restaurants) {
 
 function renderHqResponses() {
   const rows = state.menuDays
+    .slice()
+    .sort((a, b) => String(b.updatedAt || b.createdAt || b.date).localeCompare(String(a.updatedAt || a.createdAt || a.date)))
     .map((menu) => {
       const restaurant = state.restaurants.find((rest) => rest.id === menu.restaurantId);
       const itemCount = getMenuItems(menu.id).length;
       return `
-        <div class="table-row">
-          <span><strong>${restaurant?.name || "Cliente"}</strong><br><span class="muted">${menu.title} - ${formatDate(menu.date)}</span></span>
-          <span>${itemCount} itens</span>
-        </div>
+        <article class="response-card">
+          <div>
+            <p class="eyebrow">${restaurant?.name || "Cliente"}</p>
+            <h3>${menu.title}</h3>
+            <p class="muted">${formatDate(menu.date)} • ${menu.serviceHours || "Horário não informado"} • ${itemCount} itens</p>
+          </div>
+          <div class="response-card__items">
+            ${getMenuItems(menu.id)
+              .map((item) => `<span>${item.name}${item.price ? ` • ${item.price}` : ""}</span>`)
+              .join("")}
+          </div>
+          ${menu.notes ? `<p class="muted">${menu.notes}</p>` : ""}
+          <div class="actions">
+            <a class="button secondary" href="${clientPortalLink(restaurant || getRestaurant(ACTIVE_SANDBOX_SLUG))}">Abrir formulário</a>
+            <a class="button ghost" href="${publicMenuHash(restaurant || getRestaurant(ACTIVE_SANDBOX_SLUG), "hq")}">Ver cardápio</a>
+          </div>
+        </article>
       `;
     })
     .join("");
@@ -509,9 +637,9 @@ function renderHqResponses() {
       <div class="section__head">
         <p class="eyebrow">Formulários</p>
         <h2>Respostas recebidas</h2>
-        <p>Este bloco substitui a planilha do Google Forms no produto final.</p>
+        <p>Cada envio do cliente aparece aqui com data, itens publicados, preço, observações e acesso direto ao cardápio.</p>
       </div>
-      <div class="card table">${rows || "<p class='muted'>Nenhuma resposta ainda.</p>"}</div>
+      <div class="response-list">${rows || "<p class='muted'>Nenhuma resposta ainda.</p>"}</div>
     </section>
   `;
 }
@@ -535,9 +663,119 @@ function renderHqStories() {
       <div class="section__head">
         <p class="eyebrow">Stories</p>
         <h2>Artes geradas</h2>
-        <p>Histórico interno das artes criadas pelos clientes.</p>
+        <p>O gerador usa a paleta do restaurante e coloca a logo na arte. O histórico abaixo registra o que cada cliente gerou.</p>
+      </div>
+      <div class="grid">
+        ${state.restaurants
+          .map(
+            (restaurant) => `
+              <article class="card story-brand-card">
+                <div class="brand-swatch">
+                  <span style="background:${restaurant.primaryColor}"></span>
+                  <span style="background:${restaurant.secondaryColor}"></span>
+                  <img src="${restaurant.logoUrl}" alt="${restaurant.name}" />
+                </div>
+                <h3>${restaurant.name}</h3>
+                <p class="muted">Story com logo, cor primária, cor secundária e itens publicados no formulário do dia.</p>
+                <div class="actions">
+                  <a class="button" href="${clientPortalLink(restaurant)}">Gerar Story</a>
+                </div>
+              </article>
+            `
+          )
+          .join("")}
       </div>
       <div class="card table">${stories || "<p class='muted'>Nenhum Story gerado ainda.</p>"}</div>
+    </section>
+  `;
+}
+
+function renderHqCatalogBank() {
+  const catalog = getAllCatalogItems();
+  const byRestaurant = groupBy(catalog, "restaurant_id");
+  return `
+    <section class="section">
+      <div class="section__head">
+        <p class="eyebrow">Banco QrStack</p>
+        <h2>Pratos, preços e fotos</h2>
+        <p>Seu acervo por cliente: nome do prato, categoria, descrição, preço e imagem usada no cardápio público.</p>
+      </div>
+      <div class="grid grid--three">
+        ${metric("Pratos", catalog.length)}
+        ${metric("Com foto", catalog.filter((item) => item.image_url).length)}
+        ${metric("Categorias", new Set(catalog.map((item) => item.section_title || item.category)).size)}
+      </div>
+      ${Object.entries(byRestaurant)
+        .map(([restaurantId, items]) => {
+      const restaurant = state.restaurants.find((rest) => rest.id === restaurantId);
+          const groups = groupBy(items, "section_title");
+          return `
+            <div class="section">
+              <div class="section__head">
+                <p class="eyebrow">${items.length} itens</p>
+                <h3>${restaurant?.name || "Cliente"}</h3>
+              </div>
+              ${Object.entries(groups)
+                .map(
+                  ([category, categoryItems]) => `
+                    <div class="section catalog-section">
+                      <div class="section__head">
+                        <p class="eyebrow">${categoryItems.length} itens</p>
+                        <h3>${category}</h3>
+                      </div>
+                      <div class="rail">
+                        ${categoryItems.map((item) => renderMenuItemCard(item, true)).join("")}
+                      </div>
+                    </div>
+                  `
+                )
+                .join("")}
+            </div>
+          `;
+        })
+        .join("")}
+    </section>
+  `;
+}
+
+function renderHqPublicMenus() {
+  const menus = state.restaurants
+    .map((restaurant) => {
+      const menu = getLatestMenu(restaurant.id);
+      const itemCount = menu ? getMenuItems(menu.id).length : 0;
+      const publicUrl = `${location.origin}${location.pathname}#/r/${restaurant.slug}?src=qr`;
+      return `
+        <article class="card public-menu-card">
+          <div class="public-menu-card__brand">
+            <img src="${restaurant.logoUrl}" alt="${restaurant.name}" />
+            <div>
+              <p class="eyebrow">${restaurant.slug}</p>
+              <h3>${restaurant.name}</h3>
+              <p class="muted">${restaurant.address || "Endereço não informado"}</p>
+            </div>
+          </div>
+          <div class="table">
+            <div class="table-row"><span>Última publicação</span><strong>${menu ? formatDate(menu.date) : "Nenhuma"}</strong></div>
+            <div class="table-row"><span>Itens do dia</span><strong>${itemCount}</strong></div>
+            <div class="table-row"><span>Preço exibido</span><strong>${menu ? priceSummary(menu, getMenuItems(menu.id)) : "Consulte"}</strong></div>
+          </div>
+          <p class="copy-url">${publicUrl}</p>
+              <div class="actions">
+            <a class="button" href="${publicMenuHash(restaurant, "hq")}">Abrir cardápio</a>
+            <a class="button secondary" href="${clientPortalLink(restaurant)}">Atualizar</a>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+  return `
+    <section class="section">
+      <div class="section__head">
+        <p class="eyebrow">Cardápios públicos</p>
+        <h2>Links que os clientes acessam</h2>
+        <p>Aqui você confere o cardápio final de cada restaurante, o link de QR Code e o status da última publicação.</p>
+      </div>
+      <div class="grid">${menus}</div>
     </section>
   `;
 }
@@ -578,7 +816,8 @@ function renderHqInsights() {
 
 async function renderClientPortal(slug) {
   const remote = await syncMenuFromApi(slug);
-  if (!window.location.hash.replace(/^#\/?/, "").startsWith(`admin/${slug}`)) return;
+  const currentHash = window.location.hash.replace(/^#\/?/, "");
+  if (!currentHash.startsWith(`cliente/${slug}`) && !currentHash.startsWith(`admin/${slug}`)) return;
   const restaurant = remote.restaurant || (await syncRestaurantFromApi(slug));
   const menu = remote.menu || createBlankMenu(restaurant.id);
   const menuItems = remote.items.length ? remote.items : getMenuItems(menu.id);
@@ -587,8 +826,8 @@ async function renderClientPortal(slug) {
     <div class="admin-layout">
       ${renderAdminHero("Painel do restaurante", "Preencha o cardápio do dia uma vez. A QrStack atualiza o cardápio e prepara o Story.", restaurant.symbolUrl)}
       ${renderTopbar([
-        [`#/admin/${restaurant.slug}`, "Formulário", true],
-        [`#/r/${restaurant.slug}?src=direct`, "Ver cardápio", false],
+        [clientPortalLink(restaurant), "Formulário", true],
+        [publicMenuHash(restaurant, "direct"), "Ver cardápio", false],
       ], restaurant)}
       <main class="page page--narrow">
         <section class="section">
@@ -879,18 +1118,18 @@ function renderDailyMenuGroups(groups) {
     .join("");
 }
 
-function renderFullCatalog() {
-  const catalog = getAmaroCatalog();
+function renderFullCatalog(restaurant) {
+  const catalog = getCatalogForRestaurant(restaurant);
   if (!catalog.length) return "";
   const bySection = groupBy(catalog, "section_id");
-  const sections = getAmaroSections().length
+  const sections = restaurant.slug === "amaro-testes" && getAmaroSections().length
     ? getAmaroSections()
     : Object.keys(bySection).map((sectionId) => ({ id: sectionId, title: bySection[sectionId][0]?.section_title || sectionId }));
   return `
     <section id="catalogo" class="section">
       <div class="section__head">
         <p class="eyebrow">Cardápio completo</p>
-        <h2>Catálogo Amaro</h2>
+        <h2>Catálogo ${restaurant.name}</h2>
         <p>Itens fixos importados do cardápio publicado, separados pelas categorias originais.</p>
       </div>
       ${sections
@@ -960,7 +1199,7 @@ async function renderPublicMenu(slug, source = "direct") {
         </div>
         ${renderDailyMenuGroups(groups)}
       </section>
-      ${restaurant.slug === "amaro-testes" ? renderFullCatalog() : ""}
+      ${renderFullCatalog(restaurant)}
       <section id="contato" class="section">
         <div class="section__head">
           <p class="eyebrow">Contato</p>
@@ -986,20 +1225,20 @@ function drawStory(restaurant, menu, menuItems) {
   const w = canvas.width;
   const h = canvas.height;
   const highlights = menuItems.filter((menuItem) => menuItem.isHighlight).slice(0, 6);
-  const logo = new Image();
-  logo.crossOrigin = "anonymous";
-  logo.onload = () => {
+  Promise.all([loadCanvasImage(restaurant.logoUrl), loadCanvasImage(restaurant.symbolUrl)]).then(([logo, mark]) => {
     const gradient = ctx.createLinearGradient(0, 0, 0, h);
     gradient.addColorStop(0, restaurant.primaryColor);
-    gradient.addColorStop(0.62, "#fbf0d7");
-    gradient.addColorStop(1, "#f3d696");
+    gradient.addColorStop(0.58, colorMix(restaurant.secondaryColor, "#ffffff", 0.72));
+    gradient.addColorStop(1, colorMix(restaurant.secondaryColor, "#ffffff", 0.45));
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, w, h);
 
     ctx.globalAlpha = 0.08;
-    for (let y = -80; y < h; y += 310) {
-      for (let x = -60; x < w; x += 330) {
-        ctx.drawImage(logo, x, y, 170, 170);
+    if (mark) {
+      for (let y = -80; y < h; y += 310) {
+        for (let x = -60; x < w; x += 330) {
+          ctx.drawImage(mark, x, y, 170, 170);
+        }
       }
     }
     ctx.globalAlpha = 1;
@@ -1008,7 +1247,11 @@ function drawStory(restaurant, menu, menuItems) {
     roundRect(ctx, 84, 110, w - 168, h - 220, 28);
     ctx.fill();
 
-    ctx.drawImage(logo, w / 2 - 110, 180, 220, 220);
+    if (logo) {
+      drawImageContain(ctx, logo, 250, 172, w - 500, 220);
+    } else if (mark) {
+      drawImageContain(ctx, mark, w / 2 - 110, 180, 220, 220);
+    }
     ctx.textAlign = "center";
     ctx.fillStyle = restaurant.secondaryColor;
     ctx.font = "800 42px Manrope";
@@ -1052,8 +1295,48 @@ function drawStory(restaurant, menu, menuItems) {
     ctx.font = "700 30px Manrope";
     ctx.fillText(`qrstack.com.br/${restaurant.slug}`, w / 2, 1772);
     lastStoryDataUrl = canvas.toDataURL("image/png");
+  });
+}
+
+function loadCanvasImage(src) {
+  return new Promise((resolve) => {
+    if (!src) return resolve(null);
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+    image.onload = () => resolve(image);
+    image.onerror = () => resolve(null);
+    image.src = src;
+  });
+}
+
+function drawImageContain(ctx, image, x, y, width, height) {
+  const ratio = Math.min(width / image.naturalWidth, height / image.naturalHeight);
+  const drawWidth = image.naturalWidth * ratio;
+  const drawHeight = image.naturalHeight * ratio;
+  ctx.drawImage(image, x + (width - drawWidth) / 2, y + (height - drawHeight) / 2, drawWidth, drawHeight);
+}
+
+function colorMix(hexA, hexB, weightB = 0.5) {
+  const a = hexToRgb(hexA);
+  const b = hexToRgb(hexB);
+  if (!a || !b) return hexA;
+  const weightA = 1 - weightB;
+  const mixed = {
+    r: Math.round(a.r * weightA + b.r * weightB),
+    g: Math.round(a.g * weightA + b.g * weightB),
+    b: Math.round(a.b * weightA + b.b * weightB),
   };
-  logo.src = restaurant.symbolUrl;
+  return `rgb(${mixed.r}, ${mixed.g}, ${mixed.b})`;
+}
+
+function hexToRgb(hex) {
+  const clean = String(hex || "").replace("#", "").trim();
+  if (!/^[0-9a-f]{6}$/i.test(clean)) return null;
+  return {
+    r: parseInt(clean.slice(0, 2), 16),
+    g: parseInt(clean.slice(2, 4), 16),
+    b: parseInt(clean.slice(4, 6), 16),
+  };
 }
 
 function downloadStory(restaurant) {

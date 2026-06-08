@@ -1,4 +1,5 @@
 const SPREADSHEET_ID = '1v4dr2zVOuvcPJJ02Ah6V-AXsK0d8I6DVGIpMcSe8NmU';
+const OWNER_ACCESS_TOKEN = 'qrstack-berna-2026';
 
 const SHEETS = {
   restaurants: 'restaurants',
@@ -47,11 +48,13 @@ function doGet(e) {
     }
 
     if (action === 'getInsights') {
+      assertOwner(params.owner_key || params.key);
       const restaurant = getRestaurantBySlug(params.slug);
       return json({ ok: true, restaurant, insights: getInsights(restaurant.id) });
     }
 
     if (action === 'listRestaurants') {
+      assertOwner(params.owner_key || params.key);
       return json({ ok: true, restaurants: readObjects(SHEETS.restaurants) });
     }
 
@@ -325,6 +328,12 @@ function parsePayload(e) {
 function assertToken(restaurant, token) {
   if (!token || token !== restaurant.admin_token) {
     throw new Error('invalid_admin_token');
+  }
+}
+
+function assertOwner(token) {
+  if (!token || token !== OWNER_ACCESS_TOKEN) {
+    throw new Error('invalid_owner_token');
   }
 }
 
