@@ -38,6 +38,7 @@ create table if not exists menu_items (
   name text not null,
   category text not null,
   description text,
+  price text,
   is_highlight boolean not null default false,
   sort_order integer not null default 0,
   created_at timestamptz not null default now()

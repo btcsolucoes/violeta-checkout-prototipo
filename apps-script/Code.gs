@@ -106,6 +106,7 @@ function saveMenuDay(payload) {
     name: item.name,
     category: item.category || 'Geral',
     description: item.description || '',
+    price: item.price || '',
     is_highlight: item.is_highlight ? 'TRUE' : 'FALSE',
     sort_order: Number(item.sort_order || index + 1),
     created_at: now,
@@ -260,10 +261,14 @@ function normalizeItems(items) {
     .map((line, index) => {
       const isHighlight = line.endsWith('*');
       const clean = line.replace(/\*$/, '').trim();
-      const parts = clean.split(':');
+      const priceParts = clean.split('|');
+      const itemText = priceParts.shift().trim();
+      const price = priceParts.join('|').trim();
+      const parts = itemText.split(':');
       return {
         category: parts.length > 1 ? parts.shift().trim() : 'Geral',
         name: parts.join(':').trim() || clean,
+        price,
         is_highlight: isHighlight || index < 6,
         sort_order: index + 1,
       };

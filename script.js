@@ -3,21 +3,26 @@ const ASSETS = {
   qrstackWordmark: "assets/qrstack-wordmark.png",
 };
 
+const QRSTACK_API_URL =
+  "https://script.google.com/macros/s/AKfycbxb7McfZcNZ1FwpJ1WXKS1NURWjE8AQdK5X7CYAL0zNQIH2UQdtnKCKQjlzmyyuQwrcuQ/exec";
+const ACTIVE_SANDBOX_SLUG = "amaro-testes";
+const ACTIVE_SANDBOX_TOKEN = "sandbox-amaro-2026";
+
 const DEFAULT_STATE = {
   restaurants: [
     {
-      id: "rest-demo",
-      name: "Restaurante Demo",
-      slug: "restaurante-demo",
+      id: "rest_amaro_testes",
+      name: "Amaro Testes",
+      slug: "amaro-testes",
       logoUrl: ASSETS.qrstackWordmark,
       symbolUrl: ASSETS.qrstackMark,
       primaryColor: "#4a1f16",
       secondaryColor: "#d59b52",
       whatsappNumber: "81999999999",
-      instagramUrl: "https://instagram.com/restaurantedemo",
-      mapsUrl: "https://maps.google.com/?q=Restaurante%20Demo",
-      address: "Rua Exemplo, 100",
-      adminToken: "demo-restaurante",
+      instagramUrl: "https://instagram.com/amarotestes",
+      mapsUrl: "https://maps.google.com/?q=Amaro%20Testes",
+      address: "Ambiente sandbox",
+      adminToken: ACTIVE_SANDBOX_TOKEN,
       reminderTime: "09:00",
       reminderEnabled: false,
       messageTemplate:
@@ -43,13 +48,13 @@ const DEFAULT_STATE = {
   ],
   menuDays: [
     {
-      id: "menu-demo-today",
-      restaurantId: "rest-demo",
+      id: "menu_amaro_testes_today",
+      restaurantId: "rest_amaro_testes",
       date: todayIso(),
-      title: "Buffet de hoje",
-      price: "R$ 64,90/kg",
-      serviceHours: "Almoço das 11h às 14h30",
-      notes: "Cardápio sujeito a alterações conforme disponibilidade do dia.",
+      title: "Almoço de Hoje",
+      price: "",
+      serviceHours: "11h às 15h",
+      notes: "Importado do fluxo atual do Amaro para o sandbox QrStack.",
       isPublished: true,
       publishedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
@@ -57,31 +62,31 @@ const DEFAULT_STATE = {
     },
   ],
   menuItems: [
-    item("menu-demo-today", "Carne de panela", "Proteínas", true, 1),
-    item("menu-demo-today", "Frango grelhado", "Proteínas", true, 2),
-    item("menu-demo-today", "Peixe ao molho de ervas", "Proteínas", true, 3),
-    item("menu-demo-today", "Arroz branco", "Bases", false, 4),
-    item("menu-demo-today", "Feijão carioca", "Bases", true, 5),
-    item("menu-demo-today", "Purê de batata", "Guarnições", false, 6),
-    item("menu-demo-today", "Salada verde", "Saladas", false, 7),
-    item("menu-demo-today", "Farofa da casa", "Acompanhamentos", false, 8),
+    item("menu_amaro_testes_today", "Carne de Sol Desarrumada", "Executivo", true, 1, "Carne de sol em cubos montada sobre feijão verde com molho de queijos, farofa crocante, cebola crocante e pipoca de queijo coalho", "R$ 36,00"),
+    item("menu_amaro_testes_today", "Camarão Imperador", "Executivo", true, 2, "Camarões empanados e gratinados, com molho pomodoro, sobre purê de batatas e arroz de brócolis", "R$ 37,00"),
+    item("menu_amaro_testes_today", "Charque Brejeira", "Executivo", true, 3, "Charque desfiada e crocante, arroz cremoso de queijo coalho, farofa tropeira com cuscuz e feijão verde", "R$ 37,00"),
+    item("menu_amaro_testes_today", "Frango à Parmegiana", "Executivo", true, 4, "Frango empanado e gratinado, linguine ao tomate, fritas ou purê de batatas", "R$ 32,00"),
+    item("menu_amaro_testes_today", "Galinhada Amaro", "Executivo", true, 5, "Baião de arroz com fava cozido no caldo de cozimento do frango e coxa com sobrecoxa desossada frita", "R$ 36,00"),
+    item("menu_amaro_testes_today", "Maminha do Apolo", "Executivo", true, 6, "Maminha grelhada ao chimichurri, purê de batata, arroz de alho, picles de maxixe e crispy de cebola", "R$ 36,00"),
+    item("menu_amaro_testes_today", "Picadinho Carioca", "Executivo", true, 7, "Contra filé ao molho, arroz de couve e cenoura, feijão carioca, farofa panko e ovo frito", "R$ 35,00"),
   ],
   storyAssets: [],
   events: seedEvents(),
 };
 
-const STORE_KEY = "qrstack-system-prototype-v2";
+const STORE_KEY = "qrstack-system-prototype-v3-amaro";
 const app = document.getElementById("app");
 let state = loadState();
 let lastStoryDataUrl = "";
 
-function item(menuDayId, name, category, isHighlight, sortOrder, description = "") {
+function item(menuDayId, name, category, isHighlight, sortOrder, description = "", price = "") {
   return {
     id: `item-${menuDayId}-${sortOrder}`,
     menuDayId,
     name,
     category,
     description,
+    price,
     isHighlight,
     sortOrder,
     createdAt: new Date().toISOString(),
@@ -94,8 +99,8 @@ function seedEvents() {
   const type = ["page_view", "page_view", "page_view", "whatsapp_click", "maps_click"];
   return Array.from({ length: 38 }, (_, index) => ({
     id: `event-${index}`,
-    restaurantId: "rest-demo",
-    menuDayId: "menu-demo-today",
+    restaurantId: "rest_amaro_testes",
+    menuDayId: "menu_amaro_testes_today",
     eventType: type[index % type.length],
     source: source[index % source.length],
     userAgent: "seed",
@@ -127,7 +132,126 @@ function saveState() {
   localStorage.setItem(STORE_KEY, JSON.stringify(state));
 }
 
-function router() {
+async function apiGet(action, params = {}) {
+  if (!QRSTACK_API_URL) throw new Error("missing_api_url");
+  const url = new URL(QRSTACK_API_URL);
+  url.searchParams.set("action", action);
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") url.searchParams.set(key, value);
+  });
+  const response = await fetch(url.toString(), { cache: "no-store" });
+  const text = await response.text();
+  if (!text.trim().startsWith("{")) throw new Error("api_not_public_or_not_json");
+  const data = JSON.parse(text);
+  if (!response.ok || data.ok === false) throw new Error(data.error || "api_request_failed");
+  return data;
+}
+
+async function apiPost(payload) {
+  if (!QRSTACK_API_URL) throw new Error("missing_api_url");
+  const response = await fetch(QRSTACK_API_URL, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  const text = await response.text();
+  if (!text.trim().startsWith("{")) throw new Error("api_not_public_or_not_json");
+  const data = JSON.parse(text);
+  if (!response.ok || data.ok === false) throw new Error(data.error || "api_request_failed");
+  return data;
+}
+
+async function syncRestaurantFromApi(slug) {
+  try {
+    const data = await apiGet("getRestaurant", { slug });
+    if (data.restaurant) {
+      const restaurant = fromSheetRestaurant(data.restaurant);
+      upsertById(state.restaurants, restaurant);
+      saveState();
+      return restaurant;
+    }
+  } catch (error) {
+    console.warn("QrStack sandbox API unavailable:", error.message);
+  }
+  return getRestaurant(slug);
+}
+
+async function syncMenuFromApi(slug, date = todayIso()) {
+  try {
+    const data = await apiGet("getMenu", { slug, date });
+    if (data.restaurant) upsertById(state.restaurants, fromSheetRestaurant(data.restaurant));
+    if (data.menu) {
+      const menu = fromSheetMenu(data.menu);
+      upsertById(state.menuDays, menu);
+      state.menuItems = state.menuItems.filter((item) => item.menuDayId !== menu.id);
+      state.menuItems.push(...(data.items || []).map(fromSheetItem));
+      saveState();
+      return { restaurant: fromSheetRestaurant(data.restaurant), menu, items: getMenuItems(menu.id), fromApi: true };
+    }
+  } catch (error) {
+    console.warn("QrStack menu API unavailable:", error.message);
+  }
+  const restaurant = getRestaurant(slug);
+  const menu = getLatestMenu(restaurant.id);
+  return { restaurant, menu, items: menu ? getMenuItems(menu.id) : [], fromApi: false };
+}
+
+function upsertById(list, object) {
+  const index = list.findIndex((item) => item.id === object.id);
+  if (index === -1) list.push(object);
+  else list[index] = { ...list[index], ...object };
+}
+
+function fromSheetRestaurant(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    logoUrl: row.logo_url || ASSETS.qrstackWordmark,
+    symbolUrl: row.symbol_url || ASSETS.qrstackMark,
+    primaryColor: row.primary_color || "#4a1f16",
+    secondaryColor: row.secondary_color || "#d59b52",
+    whatsappNumber: row.whatsapp_number || "",
+    instagramUrl: row.instagram_url || "#",
+    mapsUrl: row.maps_url || "#",
+    address: row.address || "",
+    adminToken: row.admin_token || ACTIVE_SANDBOX_TOKEN,
+    reminderTime: row.reminder_time || "",
+    reminderEnabled: String(row.reminder_enabled).toUpperCase() === "TRUE",
+    messageTemplate: row.message_template || "",
+  };
+}
+
+function fromSheetMenu(row) {
+  return {
+    id: row.id,
+    restaurantId: row.restaurant_id,
+    date: String(row.date || todayIso()).slice(0, 10),
+    title: row.title || "Cardápio de hoje",
+    price: row.price || "",
+    serviceHours: row.service_hours || "",
+    notes: row.notes || "",
+    isPublished: String(row.is_published).toUpperCase() === "TRUE",
+    publishedAt: row.published_at || "",
+    createdAt: row.created_at || "",
+    updatedAt: row.updated_at || "",
+  };
+}
+
+function fromSheetItem(row) {
+  return {
+    id: row.id,
+    menuDayId: row.menu_day_id,
+    name: row.name,
+    category: row.category || "Geral",
+    description: row.description || "",
+    price: row.price || "",
+    isHighlight: String(row.is_highlight).toUpperCase() === "TRUE",
+    sortOrder: Number(row.sort_order || 0),
+    createdAt: row.created_at || "",
+  };
+}
+
+async function router() {
   const hash = window.location.hash.replace(/^#\/?/, "");
   const [path, hashQuery = ""] = hash.split("?");
   const parts = path.split("/").filter(Boolean);
@@ -136,8 +260,8 @@ function router() {
 
   if (!hash || parts[0] === "home") return renderHome();
   if (parts[0] === "hq") return renderHq(parts[1] || "overview");
-  if (parts[0] === "admin") return renderClientPortal(parts[1] || "restaurante-demo");
-  if (parts[0] === "r") return renderPublicMenu(parts[1] || "restaurante-demo", source);
+  if (parts[0] === "admin") return renderClientPortal(parts[1] || ACTIVE_SANDBOX_SLUG);
+  if (parts[0] === "r") return renderPublicMenu(parts[1] || ACTIVE_SANDBOX_SLUG, source);
   renderHome();
 }
 
@@ -186,6 +310,15 @@ function trackEvent(restaurant, eventType, source = "direct", menuDayId = null) 
     createdAt: new Date().toISOString(),
   });
   saveState();
+  apiPost({
+    action: "trackEvent",
+    slug: restaurant.slug,
+    menu_day_id: menuDayId || "",
+    event_type: eventType,
+    source,
+    user_agent: navigator.userAgent,
+    referrer: document.referrer,
+  }).catch((error) => console.warn("QrStack event API unavailable:", error.message));
 }
 
 function renderHome() {
@@ -203,8 +336,8 @@ function renderHome() {
         </div>
         <div class="actions">
           <a class="button" href="#/hq">Central QrStack</a>
-          <a class="button secondary" href="#/admin/restaurante-demo">Acesso do restaurante</a>
-          <a class="button ghost" href="#/r/restaurante-demo?src=qr">Cardápio público</a>
+          <a class="button secondary" href="#/admin/${ACTIVE_SANDBOX_SLUG}">Acesso do restaurante</a>
+          <a class="button ghost" href="#/r/${ACTIVE_SANDBOX_SLUG}?src=qr">Cardápio público</a>
         </div>
       </div>
     </section>
@@ -415,10 +548,12 @@ function renderHqInsights() {
   `;
 }
 
-function renderClientPortal(slug) {
-  const restaurant = getRestaurant(slug);
-  const menu = getLatestMenu(restaurant.id) || createBlankMenu(restaurant.id);
-  const menuItems = getMenuItems(menu.id);
+async function renderClientPortal(slug) {
+  const remote = await syncMenuFromApi(slug);
+  if (!window.location.hash.replace(/^#\/?/, "").startsWith(`admin/${slug}`)) return;
+  const restaurant = remote.restaurant || (await syncRestaurantFromApi(slug));
+  const menu = remote.menu || createBlankMenu(restaurant.id);
+  const menuItems = remote.items.length ? remote.items : getMenuItems(menu.id);
   setTheme(restaurant);
   app.innerHTML = `
     <div class="admin-layout">
@@ -442,8 +577,8 @@ function renderClientPortal(slug) {
             ${field("Horário", "serviceHours", menu.serviceHours, "Ex: Almoço das 11h às 14h30")}
             <div class="field field--full">
               <label for="items">Itens do dia</label>
-              <textarea id="items" name="items" placeholder="Um item por linha. Use Categoria: Item para organizar.">${menuItems
-                .map((menuItem) => `${menuItem.category}: ${menuItem.name}${menuItem.isHighlight ? " *" : ""}`)
+              <textarea id="items" name="items" placeholder="Um item por linha. Use Categoria: Item | R$ 36 para organizar.">${menuItems
+                .map((menuItem) => `${menuItem.category}: ${menuItem.name}${menuItem.price ? ` | ${menuItem.price}` : ""}${menuItem.isHighlight ? " *" : ""}`)
                 .join("\n")}</textarea>
             </div>
             <div class="field field--full">
@@ -513,10 +648,10 @@ function field(label, name, value, placeholder = "", type = "text") {
 }
 
 function attachClientHandlers(restaurant, menu) {
-  document.getElementById("menu-form").addEventListener("submit", (event) => {
+  document.getElementById("menu-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    saveMenuForm(restaurant, menu.id, formData);
+    await saveMenuForm(restaurant, menu.id, formData);
     const updatedMenu = getLatestMenu(restaurant.id);
     drawStory(restaurant, updatedMenu, getMenuItems(updatedMenu.id));
     toast("Cardápio atualizado e publicado.");
@@ -533,6 +668,14 @@ function attachClientHandlers(restaurant, menu) {
       templateName: "daily-menu-v1",
       createdAt: new Date().toISOString(),
     });
+    apiPost({
+      action: "saveStoryAsset",
+      slug: restaurant.slug,
+      token: restaurant.adminToken || ACTIVE_SANDBOX_TOKEN,
+      menu_day_id: latestMenu.id,
+      image_url: "local-canvas-preview",
+      template_name: "daily-menu-v1",
+    }).catch((error) => console.warn("QrStack story API unavailable:", error.message));
     trackEvent(restaurant, "story_generated", "admin", latestMenu.id);
     saveState();
     document.getElementById("story-panel").scrollIntoView({ behavior: "smooth" });
@@ -551,7 +694,7 @@ function attachClientHandlers(restaurant, menu) {
   });
 }
 
-function saveMenuForm(restaurant, menuId, formData) {
+async function saveMenuForm(restaurant, menuId, formData) {
   const menu = state.menuDays.find((entry) => entry.id === menuId);
   menu.title = formData.get("title").toString().trim();
   menu.date = formData.get("date").toString();
@@ -570,28 +713,69 @@ function saveMenuForm(restaurant, menuId, formData) {
     .map((row) => row.trim())
     .filter(Boolean);
   rows.forEach((row, index) => {
-    const isHighlight = row.endsWith("*");
-    const clean = row.replace(/\*$/, "").trim();
-    const [maybeCategory, ...rest] = clean.split(":");
-    const hasCategory = rest.length > 0;
+    const parsed = parseMenuItemLine(row, index);
     state.menuItems.push(
       item(
         menuId,
-        hasCategory ? rest.join(":").trim() : clean,
-        hasCategory ? maybeCategory.trim() : "Destaques",
-        isHighlight || index < 6,
-        index + 1
+        parsed.name,
+        parsed.category,
+        parsed.isHighlight,
+        index + 1,
+        "",
+        parsed.price
       )
     );
   });
   trackEvent(restaurant, "menu_published", "admin", menuId);
   saveState();
+
+  try {
+    await apiPost({
+      action: "saveMenuDay",
+      slug: restaurant.slug,
+      token: restaurant.adminToken || ACTIVE_SANDBOX_TOKEN,
+      date: menu.date,
+      title: menu.title,
+      price: menu.price,
+      service_hours: menu.serviceHours,
+      notes: menu.notes,
+      items: state.menuItems
+        .filter((menuItem) => menuItem.menuDayId === menuId)
+        .map((menuItem) => ({
+          name: menuItem.name,
+          category: menuItem.category,
+          description: menuItem.description,
+          is_highlight: menuItem.isHighlight,
+          sort_order: menuItem.sortOrder,
+          price: menuItem.price,
+        })),
+    });
+  } catch (error) {
+    console.warn("QrStack save API unavailable:", error.message);
+  }
 }
 
-function renderPublicMenu(slug, source = "direct") {
-  const restaurant = getRestaurant(slug);
-  const menu = getLatestMenu(restaurant.id);
-  const menuItems = menu ? getMenuItems(menu.id) : [];
+function parseMenuItemLine(row, index) {
+  const isHighlight = row.endsWith("*") || index < 6;
+  const clean = row.replace(/\*$/, "").trim();
+  const [itemPart, ...priceParts] = clean.split("|");
+  const price = priceParts.join("|").trim();
+  const [maybeCategory, ...rest] = itemPart.split(":");
+  const hasCategory = rest.length > 0;
+  return {
+    category: hasCategory ? maybeCategory.trim() : "Destaques",
+    name: hasCategory ? rest.join(":").trim() : itemPart.trim(),
+    price,
+    isHighlight,
+  };
+}
+
+async function renderPublicMenu(slug, source = "direct") {
+  const remote = await syncMenuFromApi(slug);
+  if (!window.location.hash.replace(/^#\/?/, "").startsWith(`r/${slug}`)) return;
+  const restaurant = remote.restaurant;
+  const menu = remote.menu;
+  const menuItems = remote.items;
   const groups = groupBy(menuItems, "category");
   setTheme(restaurant);
   if (menu) trackEvent(restaurant, "page_view", source, menu.id);
@@ -619,7 +803,7 @@ function renderPublicMenu(slug, source = "direct") {
           <p>${menu?.notes || "Itens publicados pelo restaurante."}</p>
         </div>
         <div class="grid grid--three">
-          ${metric("Preço", menu?.price || "Consulte")}
+          ${metric("Preço", priceSummary(menu, menuItems))}
           ${metric("Categorias", Object.keys(groups).length)}
           ${metric("Destaques", menuItems.filter((entry) => entry.isHighlight).length)}
         </div>
@@ -638,8 +822,9 @@ function renderPublicMenu(slug, source = "direct") {
                         <article class="item-card">
                           <div class="item-card__top">
                             <h3>${menuItem.name}</h3>
-                            ${menuItem.isHighlight ? '<span class="tag">Destaque</span>' : ""}
+                            ${menuItem.price ? `<span class="price">${menuItem.price}</span>` : menuItem.isHighlight ? '<span class="tag">Destaque</span>' : ""}
                           </div>
+                          ${menuItem.price && menuItem.isHighlight ? '<span class="tag">Destaque</span>' : ""}
                           ${menuItem.description ? `<p class="muted">${menuItem.description}</p>` : ""}
                         </article>
                       `
@@ -730,7 +915,7 @@ function drawStory(restaurant, menu, menuItems) {
     ctx.fill();
     ctx.fillStyle = "white";
     ctx.font = "900 48px Manrope";
-    ctx.fillText(menu.price || "Consulte o valor", w / 2, 1504);
+    ctx.fillText(priceSummary(menu, menuItems), w / 2, 1504);
 
     ctx.fillStyle = "#6f416c";
     ctx.font = "700 34px Manrope";
@@ -751,6 +936,18 @@ function downloadStory(restaurant) {
   link.href = lastStoryDataUrl || document.getElementById("story-canvas").toDataURL("image/png");
   link.download = `story-${restaurant.slug}-${todayIso()}.png`;
   link.click();
+}
+
+function priceSummary(menu, menuItems = []) {
+  if (menu?.price) return menu.price;
+  const prices = menuItems
+    .map((entry) => Number(String(entry.price || "").replace(/[^\d,.-]/g, "").replace(",", ".")))
+    .filter((value) => Number.isFinite(value) && value > 0)
+    .sort((a, b) => a - b);
+  if (!prices.length) return "Consulte";
+  const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+  if (prices[0] === prices[prices.length - 1]) return brl.format(prices[0]);
+  return `${brl.format(prices[0])} a ${brl.format(prices[prices.length - 1])}`;
 }
 
 async function shareStory(restaurant) {
