@@ -297,6 +297,34 @@ function getMenuItems(menuDayId) {
     .sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
+function getAmaroCatalog() {
+  return Array.isArray(window.QRSTACK_AMARO_CATALOG) ? window.QRSTACK_AMARO_CATALOG : [];
+}
+
+function getAmaroSections() {
+  return Array.isArray(window.QRSTACK_AMARO_SECTIONS) ? window.QRSTACK_AMARO_SECTIONS : [];
+}
+
+function getAmaroFormFields() {
+  return Array.isArray(window.QRSTACK_AMARO_FORM_FIELDS) ? window.QRSTACK_AMARO_FORM_FIELDS : [];
+}
+
+function catalogByName() {
+  return getAmaroCatalog().reduce((acc, item) => {
+    acc[normalizeKey(item.name)] = item;
+    return acc;
+  }, {});
+}
+
+function normalizeKey(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
 function trackEvent(restaurant, eventType, source = "direct", menuDayId = null) {
   state.events.push({
     id: crypto.randomUUID(),
@@ -575,12 +603,7 @@ async function renderClientPortal(slug) {
             ${field("Data", "date", menu.date, "", "date")}
             ${field("Preço", "price", menu.price, "Ex: R$ 59,90/kg")}
             ${field("Horário", "serviceHours", menu.serviceHours, "Ex: Almoço das 11h às 14h30")}
-            <div class="field field--full">
-              <label for="items">Itens do dia</label>
-              <textarea id="items" name="items" placeholder="Um item por linha. Use Categoria: Item | R$ 36 para organizar.">${menuItems
-                .map((menuItem) => `${menuItem.category}: ${menuItem.name}${menuItem.price ? ` | ${menuItem.price}` : ""}${menuItem.isHighlight ? " *" : ""}`)
-                .join("\n")}</textarea>
-            </div>
+            ${restaurant.slug === "amaro-testes" ? renderAmaroOriginalForm(menuItems) : renderGenericItemsTextarea(menuItems)}
             <div class="field field--full">
               <label for="notes">Observações</label>
               <textarea id="notes" name="notes" placeholder="Observações do dia">${menu.notes || ""}</textarea>
@@ -647,6 +670,48 @@ function field(label, name, value, placeholder = "", type = "text") {
   `;
 }
 
+function renderGenericItemsTextarea(menuItems) {
+  return `
+    <div class="field field--full">
+      <label for="items">Itens do cardápio</label>
+      <textarea id="items" name="items" placeholder="Categoria: Item | Preço">${menuItems
+        .map((menuItem) => `${menuItem.category}: ${menuItem.name}${menuItem.price ? ` | ${menuItem.price}` : ""}${menuItem.isHighlight ? "*" : ""}`)
+        .join("\n")}</textarea>
+    </div>
+  `;
+}
+
+function renderAmaroOriginalForm(menuItems) {
+  const fields = getAmaroFormFields().filter((field) => field.title.toLowerCase().startsWith("prato"));
+  const selectedNames = menuItems.map((menuItem) => menuItem.name);
+  return `
+    <div class="field field--full">
+      <label>Formulário original Amaro</label>
+      <div class="select-grid">
+        ${fields
+          .map((field, index) => {
+            const selectedName = selectedNames[index] || "";
+            return `
+              <div class="field">
+                <label for="amaro-prato-${index + 1}">${field.title.replace(":", "")}</label>
+                <select id="amaro-prato-${index + 1}" name="prato_${index + 1}" required>
+                  <option value="">Selecione</option>
+                  ${(field.options || [])
+                    .map(
+                      (option) =>
+                        `<option value="${escapeAttr(option)}" ${option === selectedName ? "selected" : ""}>${option}</option>`
+                    )
+                    .join("")}
+                </select>
+              </div>
+            `;
+          })
+          .join("")}
+      </div>
+    </div>
+  `;
+}
+
 function attachClientHandlers(restaurant, menu) {
   document.getElementById("menu-form").addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -706,25 +771,10 @@ async function saveMenuForm(restaurant, menuId, formData) {
   menu.updatedAt = new Date().toISOString();
 
   state.menuItems = state.menuItems.filter((menuItem) => menuItem.menuDayId !== menuId);
-  const rows = formData
-    .get("items")
-    .toString()
-    .split("\n")
-    .map((row) => row.trim())
-    .filter(Boolean);
-  rows.forEach((row, index) => {
-    const parsed = parseMenuItemLine(row, index);
-    state.menuItems.push(
-      item(
-        menuId,
-        parsed.name,
-        parsed.category,
-        parsed.isHighlight,
-        index + 1,
-        "",
-        parsed.price
-      )
-    );
+  const selectedRows =
+    restaurant.slug === "amaro-testes" ? selectedAmaroRows(formData) : selectedGenericRows(formData);
+  selectedRows.forEach((parsed, index) => {
+    state.menuItems.push(item(menuId, parsed.name, parsed.category, parsed.isHighlight, index + 1, parsed.description, parsed.price));
   });
   trackEvent(restaurant, "menu_published", "admin", menuId);
   saveState();
@@ -755,6 +805,33 @@ async function saveMenuForm(restaurant, menuId, formData) {
   }
 }
 
+function selectedGenericRows(formData) {
+  return formData
+    .get("items")
+    .toString()
+    .split("\n")
+    .map((row) => row.trim())
+    .filter(Boolean)
+    .map(parseMenuItemLine);
+}
+
+function selectedAmaroRows(formData) {
+  const catalog = catalogByName();
+  return Array.from({ length: 7 }, (_, index) => formData.get(`prato_${index + 1}`)?.toString().trim())
+    .filter(Boolean)
+    .map((name, index) => {
+      const catalogItem = catalog[normalizeKey(name)];
+      return {
+        name,
+        category: catalogItem?.category || catalogItem?.section_title || "Executivo",
+        description: catalogItem?.description || "",
+        price: catalogItem?.price || "",
+        isHighlight: true,
+        sortOrder: index + 1,
+      };
+    });
+}
+
 function parseMenuItemLine(row, index) {
   const isHighlight = row.endsWith("*") || index < 6;
   const clean = row.replace(/\*$/, "").trim();
@@ -768,6 +845,79 @@ function parseMenuItemLine(row, index) {
     price,
     isHighlight,
   };
+}
+
+function renderMenuItemCard(menuItem, showImage = false) {
+  return `
+    <article class="item-card">
+      ${showImage && menuItem.image_url ? `<div class="item-card__media"><img src="${catalogImageUrl(menuItem.image_url)}" alt="${escapeAttr(menuItem.name)}" loading="lazy" /></div>` : ""}
+      <div class="item-card__top">
+        <h3>${menuItem.name}</h3>
+        ${menuItem.price ? `<span class="price">${menuItem.price}</span>` : menuItem.isHighlight ? '<span class="tag">Destaque</span>' : ""}
+      </div>
+      ${menuItem.price && menuItem.isHighlight ? '<span class="tag">Destaque</span>' : ""}
+      ${menuItem.description ? `<p class="muted">${menuItem.description}</p>` : ""}
+    </article>
+  `;
+}
+
+function renderDailyMenuGroups(groups) {
+  return Object.entries(groups)
+    .map(
+      ([category, items]) => `
+        <div class="section">
+          <div class="section__head">
+            <p class="eyebrow">Categoria</p>
+            <h3>${category}</h3>
+          </div>
+          <div class="rail">
+            ${items.map((menuItem) => renderMenuItemCard(menuItem)).join("")}
+          </div>
+        </div>
+      `
+    )
+    .join("");
+}
+
+function renderFullCatalog() {
+  const catalog = getAmaroCatalog();
+  if (!catalog.length) return "";
+  const bySection = groupBy(catalog, "section_id");
+  const sections = getAmaroSections().length
+    ? getAmaroSections()
+    : Object.keys(bySection).map((sectionId) => ({ id: sectionId, title: bySection[sectionId][0]?.section_title || sectionId }));
+  return `
+    <section id="catalogo" class="section">
+      <div class="section__head">
+        <p class="eyebrow">Cardápio completo</p>
+        <h2>Catálogo Amaro</h2>
+        <p>Itens fixos importados do cardápio publicado, separados pelas categorias originais.</p>
+      </div>
+      ${sections
+        .map((section) => {
+          const items = bySection[section.id] || [];
+          if (!items.length) return "";
+          return `
+            <div class="section catalog-section">
+              <div class="section__head">
+                <p class="eyebrow">${items.length} itens</p>
+                <h3>${section.title}</h3>
+              </div>
+              <div class="rail">
+                ${items.map((menuItem) => renderMenuItemCard(menuItem, true)).join("")}
+              </div>
+            </div>
+          `;
+        })
+        .join("")}
+    </section>
+  `;
+}
+
+function catalogImageUrl(imageUrl) {
+  if (!imageUrl) return "";
+  if (/^(https?:|data:|assets\/)/.test(imageUrl)) return imageUrl;
+  return `assets/amaro/${imageUrl}`;
 }
 
 async function renderPublicMenu(slug, source = "direct") {
@@ -793,6 +943,7 @@ async function renderPublicMenu(slug, source = "direct") {
     </section>
     ${renderTopbar([
       ["#menu", "Cardápio", true],
+      ["#catalogo", "Completo", false],
       ["#contato", "Contato", false],
     ], restaurant)}
     <main class="page">
@@ -807,35 +958,9 @@ async function renderPublicMenu(slug, source = "direct") {
           ${metric("Categorias", Object.keys(groups).length)}
           ${metric("Destaques", menuItems.filter((entry) => entry.isHighlight).length)}
         </div>
-        ${Object.entries(groups)
-          .map(
-            ([category, items]) => `
-              <div class="section">
-                <div class="section__head">
-                  <p class="eyebrow">Categoria</p>
-                  <h3>${category}</h3>
-                </div>
-                <div class="rail">
-                  ${items
-                    .map(
-                      (menuItem) => `
-                        <article class="item-card">
-                          <div class="item-card__top">
-                            <h3>${menuItem.name}</h3>
-                            ${menuItem.price ? `<span class="price">${menuItem.price}</span>` : menuItem.isHighlight ? '<span class="tag">Destaque</span>' : ""}
-                          </div>
-                          ${menuItem.price && menuItem.isHighlight ? '<span class="tag">Destaque</span>' : ""}
-                          ${menuItem.description ? `<p class="muted">${menuItem.description}</p>` : ""}
-                        </article>
-                      `
-                    )
-                    .join("")}
-                </div>
-              </div>
-            `
-          )
-          .join("")}
+        ${renderDailyMenuGroups(groups)}
       </section>
+      ${restaurant.slug === "amaro-testes" ? renderFullCatalog() : ""}
       <section id="contato" class="section">
         <div class="section__head">
           <p class="eyebrow">Contato</p>

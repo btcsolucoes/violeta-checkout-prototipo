@@ -44,6 +44,42 @@ create table if not exists menu_items (
   created_at timestamptz not null default now()
 );
 
+create table if not exists catalog_items (
+  id text primary key,
+  restaurant_id uuid not null references restaurants(id) on delete cascade,
+  section_id text not null,
+  section_title text not null,
+  name text not null,
+  category text,
+  description text,
+  price text,
+  image_url text,
+  sort_order integer not null default 0,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists form_fields (
+  id text primary key,
+  restaurant_id uuid not null references restaurants(id) on delete cascade,
+  form_id text not null,
+  title text not null,
+  field_type text not null,
+  entry_id text,
+  is_required boolean not null default true,
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists form_options (
+  id text primary key,
+  field_id text not null references form_fields(id) on delete cascade,
+  option_label text not null,
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists story_assets (
   id uuid primary key default gen_random_uuid(),
   restaurant_id uuid not null references restaurants(id) on delete cascade,
@@ -79,5 +115,8 @@ create table if not exists reminder_settings (
 create index if not exists idx_restaurants_slug on restaurants(slug);
 create index if not exists idx_menu_days_restaurant_date on menu_days(restaurant_id, date desc);
 create index if not exists idx_menu_items_menu_day on menu_items(menu_day_id, sort_order);
+create index if not exists idx_catalog_items_restaurant_section on catalog_items(restaurant_id, section_id, sort_order);
+create index if not exists idx_form_fields_restaurant on form_fields(restaurant_id, sort_order);
+create index if not exists idx_form_options_field on form_options(field_id, sort_order);
 create index if not exists idx_events_restaurant_created on events(restaurant_id, created_at desc);
 create index if not exists idx_events_type_source on events(event_type, source);

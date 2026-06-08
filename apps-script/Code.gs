@@ -7,6 +7,9 @@ const SHEETS = {
   storyAssets: 'story_assets',
   events: 'events',
   settings: 'settings',
+  catalogItems: 'catalog_items',
+  formFields: 'form_fields',
+  formOptions: 'form_options',
 };
 
 function doGet(e) {
@@ -31,6 +34,16 @@ function doGet(e) {
         menu,
         items: menu ? getItemsByMenuDay(menu.id) : [],
       });
+    }
+
+    if (action === 'getCatalog') {
+      const restaurant = getRestaurantBySlug(params.slug);
+      return json({ ok: true, restaurant, catalog: getCatalogByRestaurant(restaurant.id) });
+    }
+
+    if (action === 'getFormSchema') {
+      const restaurant = getRestaurantBySlug(params.slug);
+      return json({ ok: true, restaurant, fields: getFormSchemaByRestaurant(restaurant.id) });
     }
 
     if (action === 'getInsights') {
@@ -166,6 +179,29 @@ function getItemsByMenuDay(menuDayId) {
   return readObjects(SHEETS.menuItems)
     .filter((row) => row.menu_day_id === menuDayId)
     .sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0));
+}
+
+function getCatalogByRestaurant(restaurantId) {
+  return readObjects(SHEETS.catalogItems)
+    .filter((row) => row.restaurant_id === restaurantId && String(row.is_active).toUpperCase() !== 'FALSE')
+    .sort((a, b) => {
+      const sectionSort = String(a.section_id || '').localeCompare(String(b.section_id || ''));
+      return sectionSort || Number(a.sort_order || 0) - Number(b.sort_order || 0);
+    });
+}
+
+function getFormSchemaByRestaurant(restaurantId) {
+  const fieldRows = readObjects(SHEETS.formFields)
+    .filter((row) => !row.restaurant_id || row.restaurant_id === restaurantId)
+    .sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0));
+  const options = readObjects(SHEETS.formOptions);
+  return fieldRows.map((field) => ({
+    ...field,
+    options: options
+      .filter((option) => option.field_id === field.id)
+      .sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0))
+      .map((option) => option.option_label),
+  }));
 }
 
 function getInsights(restaurantId) {
