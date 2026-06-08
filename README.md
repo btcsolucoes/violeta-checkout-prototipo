@@ -38,6 +38,30 @@ No produto QrStack, o Google Forms sai do fluxo:
 5. Story é gerado a partir da mesma publicação.
 6. Insights ficam na central QrStack.
 
+## Sandbox Google Sheets
+
+Planilha nativa de testes:
+
+`https://docs.google.com/spreadsheets/d/1v4dr2zVOuvcPJJ02Ah6V-AXsK0d8I6DVGIpMcSe8NmU/edit`
+
+O arquivo enviado pelo usuário estava como Excel no Drive, então foi criada uma versão nativa Google Sheets para permitir leitura/escrita via API.
+
+## Apps Script Sandbox
+
+O código do Web App fica em `apps-script/Code.gs`.
+
+Passos para publicar:
+
+1. Abrir a planilha nativa de testes.
+2. Ir em `Extensões > Apps Script`.
+3. Colar o conteúdo de `apps-script/Code.gs`.
+4. Clicar em `Implantar > Nova implantação`.
+5. Tipo: `App da Web`.
+6. Executar como: `Eu`.
+7. Quem tem acesso: `Qualquer pessoa`.
+8. Copiar a URL do Web App.
+9. Colar a URL em `config/sandbox.json` no campo `appsScriptWebAppUrl`.
+
 ## Próxima fase
 
 - Migrar para Next.js.
