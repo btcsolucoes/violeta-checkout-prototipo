@@ -111,6 +111,7 @@ function saveMenuDay(payload) {
     title: payload.title || 'Cardápio de hoje',
     price: payload.price || '',
     service_hours: payload.service_hours || '',
+    story_link: payload.story_link || '',
     notes: payload.notes || '',
     is_published: 'TRUE',
     published_at: now,

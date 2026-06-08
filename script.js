@@ -61,6 +61,7 @@ const DEFAULT_STATE = {
       title: "Almoço de Hoje",
       price: "",
       serviceHours: "11h às 15h",
+      storyLink: "",
       notes: "Importado do fluxo atual do Amaro para o sandbox QrStack.",
       isPublished: true,
       publishedAt: new Date().toISOString(),
@@ -254,6 +255,7 @@ function fromSheetMenu(row) {
     title: row.title || "Cardápio de hoje",
     price: row.price || "",
     serviceHours: row.service_hours || "",
+    storyLink: row.story_link || "",
     notes: row.notes || "",
     isPublished: String(row.is_published).toUpperCase() === "TRUE",
     publishedAt: row.published_at || "",
@@ -321,6 +323,18 @@ function clientPortalLink(restaurant) {
 
 function publicMenuHash(restaurant, source = "qr") {
   return `#/r/${restaurant.slug}?src=${source}`;
+}
+
+function absoluteAppUrl(hash) {
+  return `${location.origin}${location.pathname}${hash}`;
+}
+
+function restaurantAccessUrl(restaurant) {
+  return absoluteAppUrl(clientPortalLink(restaurant));
+}
+
+function restaurantPublicUrl(restaurant, source = "qr") {
+  return absoluteAppUrl(publicMenuHash(restaurant, source));
 }
 
 function setTheme(restaurant) {
@@ -672,6 +686,7 @@ function renderHqClients(restaurants) {
                 </div>
                 <div class="actions">
                   <a class="button" href="${clientPortalLink(restaurant)}">Link do restaurante</a>
+                  <button type="button" class="secondary" data-copy="${escapeAttr(restaurantAccessUrl(restaurant))}">Copiar acesso</button>
                   <a class="button secondary" href="${publicMenuHash(restaurant)}">Cardápio público</a>
                 </div>
               </article>
@@ -866,7 +881,7 @@ function databaseLinksCard(database) {
     <article class="card">
       <p class="eyebrow">Acessos</p>
       <h3>Links do cliente</h3>
-      <p class="muted">${location.origin}${location.pathname}${publicMenuHash(restaurant)}</p>
+      <p class="muted">${restaurantPublicUrl(restaurant)}</p>
       <div class="actions">
         <a class="button secondary" href="${publicMenuHash(restaurant, "hq")}">Cardápio</a>
         <a class="button ghost" href="${clientPortalLink(restaurant)}">Portal</a>
@@ -894,7 +909,8 @@ function renderHqPublicMenus() {
     .map((restaurant) => {
       const menu = getLatestMenu(restaurant.id);
       const itemCount = menu ? getMenuItems(menu.id).length : 0;
-      const publicUrl = `${location.origin}${location.pathname}#/r/${restaurant.slug}?src=qr`;
+      const publicUrl = restaurantPublicUrl(restaurant);
+      const privateUrl = restaurantAccessUrl(restaurant);
       return `
         <article class="card public-menu-card">
           <div class="public-menu-card__brand">
@@ -911,9 +927,12 @@ function renderHqPublicMenus() {
             <div class="table-row"><span>Preço exibido</span><strong>${menu ? priceSummary(menu, getMenuItems(menu.id)) : "Consulte"}</strong></div>
           </div>
           <p class="copy-url">${publicUrl}</p>
+          <p class="copy-url">${privateUrl}</p>
               <div class="actions">
             <a class="button" href="${publicMenuHash(restaurant, "hq")}">Abrir cardápio</a>
             <a class="button secondary" href="${clientPortalLink(restaurant)}">Atualizar</a>
+            <button type="button" class="secondary" data-copy="${escapeAttr(privateUrl)}">Copiar acesso</button>
+            <button type="button" class="ghost" data-copy="${escapeAttr(publicUrl)}">Copiar público</button>
           </div>
         </article>
       `;
@@ -972,6 +991,7 @@ async function renderClientPortal(slug) {
   const restaurant = remote.restaurant || (await syncRestaurantFromApi(slug));
   const menu = remote.menu || createBlankMenu(restaurant.id);
   const menuItems = remote.items.length ? remote.items : getMenuItems(menu.id);
+  const storyLink = menu.storyLink || restaurantPublicUrl(restaurant);
   setTheme(restaurant);
   app.innerHTML = `
     <div class="admin-layout">
@@ -993,6 +1013,7 @@ async function renderClientPortal(slug) {
             ${field("Data", "date", menu.date, "", "date")}
             ${field("Preço", "price", menu.price, "Ex: R$ 59,90/kg")}
             ${field("Horário", "serviceHours", menu.serviceHours, "Ex: Almoço das 11h às 14h30")}
+            ${field("Link do Story", "storyLink", storyLink, "Cole aqui o link que deve aparecer no Story", "url")}
             ${restaurant.slug === "amaro-testes" ? renderAmaroOriginalForm(menuItems) : renderGenericItemsTextarea(menuItems)}
             <div class="field field--full">
               <label for="notes">Observações</label>
@@ -1018,6 +1039,7 @@ async function renderClientPortal(slug) {
               <div class="actions">
                 <button type="button" id="download-story">Baixar Story</button>
                 <button type="button" class="secondary" id="share-story">Postar arte</button>
+                <button type="button" class="ghost" data-copy-input="storyLink">Copiar link do Story</button>
               </div>
             </div>
             <div class="story-frame">
@@ -1040,6 +1062,7 @@ function createBlankMenu(restaurantId) {
     title: "Buffet de hoje",
     price: "",
     serviceHours: "",
+    storyLink: "",
     notes: "",
     isPublished: false,
     publishedAt: null,
@@ -1155,6 +1178,7 @@ async function saveMenuForm(restaurant, menuId, formData) {
   menu.date = formData.get("date").toString();
   menu.price = formData.get("price").toString().trim();
   menu.serviceHours = formData.get("serviceHours").toString().trim();
+  menu.storyLink = formData.get("storyLink").toString().trim();
   menu.notes = formData.get("notes").toString().trim();
   menu.isPublished = true;
   menu.publishedAt = new Date().toISOString();
@@ -1178,6 +1202,7 @@ async function saveMenuForm(restaurant, menuId, formData) {
       title: menu.title,
       price: menu.price,
       service_hours: menu.serviceHours,
+      story_link: menu.storyLink,
       notes: menu.notes,
       items: state.menuItems
         .filter((menuItem) => menuItem.menuDayId === menuId)
@@ -1383,6 +1408,8 @@ function drawStory(restaurant, menu, menuItems) {
   const w = canvas.width;
   const h = canvas.height;
   const highlights = menuItems.filter((menuItem) => menuItem.isHighlight).slice(0, 6);
+  const storyLink = menu.storyLink || restaurantPublicUrl(restaurant);
+  const storyLinkLabel = formatStoryLink(storyLink);
   Promise.all([loadCanvasImage(restaurant.logoUrl), loadCanvasImage(restaurant.symbolUrl)]).then(([logo, mark]) => {
     const gradient = ctx.createLinearGradient(0, 0, 0, h);
     gradient.addColorStop(0, restaurant.primaryColor);
@@ -1448,12 +1475,21 @@ function drawStory(restaurant, menu, menuItems) {
     ctx.fillText(menu.serviceHours || "Confira o horário no cardápio", w / 2, 1618);
     ctx.fillStyle = restaurant.primaryColor;
     ctx.font = "900 38px Manrope";
-    ctx.fillText("ACESSE O CARDÁPIO COMPLETO", w / 2, 1718);
+    ctx.fillText("TOQUE NO LINK DO STORY", w / 2, 1718);
     ctx.fillStyle = "#42213e";
-    ctx.font = "700 30px Manrope";
-    ctx.fillText(`qrstack.com.br/${restaurant.slug}`, w / 2, 1772);
+    ctx.font = "700 28px Manrope";
+    wrapCanvasText(ctx, storyLinkLabel, w / 2, 1772, w - 220, 34, 2);
     lastStoryDataUrl = canvas.toDataURL("image/png");
   });
+}
+
+function formatStoryLink(value) {
+  try {
+    const url = new URL(value);
+    return `${url.hostname}${url.pathname}${url.hash || ""}`.replace(/\/index\.html/, "");
+  } catch {
+    return String(value || "");
+  }
 }
 
 function loadCanvasImage(src) {
@@ -1633,4 +1669,31 @@ function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight, maxLines = 3) {
 }
 
 window.addEventListener("hashchange", router);
+document.addEventListener("click", async (event) => {
+  const copyButton = event.target.closest("[data-copy], [data-copy-input]");
+  if (!copyButton) return;
+  const inputName = copyButton.dataset.copyInput;
+  const input = inputName ? document.querySelector(`[name="${inputName}"]`) : null;
+  const value = input ? input.value : copyButton.dataset.copy;
+  if (!value) return;
+  await copyToClipboard(value);
+  toast("Link copiado.");
+});
 router();
+
+async function copyToClipboard(value) {
+  try {
+    await navigator.clipboard.writeText(value);
+    return;
+  } catch {
+    const textarea = document.createElement("textarea");
+    textarea.value = value;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    textarea.remove();
+  }
+}

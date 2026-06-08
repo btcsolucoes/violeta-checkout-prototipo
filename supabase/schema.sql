@@ -28,6 +28,7 @@ create table if not exists menu_days (
   title text not null,
   price text,
   service_hours text,
+  story_link text,
   notes text,
   is_published boolean not null default false,
   published_at timestamptz,
